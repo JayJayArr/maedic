@@ -7,3 +7,7 @@ database:
   username: "sa"
   password: "Charlie 13"
   database_name: PWNT
+  trust_cert: true
+limits:
+  hi_queue_count: 1000
+  spool_file_count: 10 # max Number of spool files acceptable for a Channel to be consider healthy

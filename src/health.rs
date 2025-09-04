@@ -22,14 +22,12 @@ pub async fn check_health(
         get_spoolfile_count(state.db_client, state.config.limits.spool_file_count).await?;
 
     if hi_queue_size > state.config.limits.hi_queue_count.into() || spool_file_count.len() > 0 {
-        error!("App reported unhealthy status");
-        return Ok((
-            StatusCode::SERVICE_UNAVAILABLE,
-            Json(Health {
-                spool_file_count,
-                hi_queue_size: hi_queue_size,
-            }),
-        ));
+        let health = Health {
+            spool_file_count,
+            hi_queue_size: hi_queue_size,
+        };
+        error!("App reported unhealthy status {:?}", health);
+        return Ok((StatusCode::SERVICE_UNAVAILABLE, Json(health)));
     }
 
     Ok((

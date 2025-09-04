@@ -1,0 +1,10 @@
+{"timestamp":"2025-09-04T10:00:19.615870Z","level":"INFO","fields":{"message":"Starting maedic with the following config Settings { application: ApplicationSettings { port: 3000, host: \"0.0.0.0\" }, database: DatabaseSettings { host: \"127.0.0.1\", port: 1433, username: \"sa\", password: SecretBox<str>([REDACTED]), database_name: \"PWNT\", trust_cert: true }, limits: LimitSettings { hi_queue_count: 1000, spool_file_count: 10 } }"},"target":"maedic"}
+{"timestamp":"2025-09-04T10:00:19.618515Z","level":"INFO","fields":{"message":"Performing a TLS handshake"},"target":"tiberius::client::connection"}
+{"timestamp":"2025-09-04T10:00:19.618678Z","level":"WARN","fields":{"message":"Trusting the server certificate without validation."},"target":"tiberius::client::tls_stream::native_tls_stream"}
+{"timestamp":"2025-09-04T10:00:19.679184Z","level":"INFO","fields":{"message":"TLS handshake successful"},"target":"tiberius::client::connection"}
+{"timestamp":"2025-09-04T10:00:19.682552Z","level":"INFO","fields":{"message":"Database change from 'PWNT' to 'master'"},"target":"tiberius::tds::stream::token"}
+{"timestamp":"2025-09-04T10:00:19.682975Z","level":"INFO","fields":{"message":"Changed database context to 'PWNT'."},"target":"tiberius::tds::stream::token"}
+{"timestamp":"2025-09-04T10:00:19.683265Z","level":"INFO","fields":{"message":"SQL collation changed to windows-1252"},"target":"tiberius::tds::stream::token"}
+{"timestamp":"2025-09-04T10:00:19.683455Z","level":"INFO","fields":{"message":"Microsoft SQL Server\u0000\u0000 version 1913651216"},"target":"tiberius::tds::stream::token"}
+{"timestamp":"2025-09-04T10:00:19.683646Z","level":"INFO","fields":{"message":"Packet size change from '4096' to '4096'"},"target":"tiberius::tds::stream::token"}
+{"timestamp":"2025-09-04T10:00:19.683989Z","level":"INFO","fields":{"message":"Starting maedic on port: 3000"},"target":"maedic"}

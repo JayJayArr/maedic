@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{fs::OpenOptions, sync::Arc};
 
 use crate::{
     configuration::{Settings, get_configuration},
@@ -9,7 +9,8 @@ use axum::{Router, routing::get};
 use tiberius::Client;
 use tokio::sync::Mutex;
 use tokio_util::compat::Compat;
-use tracing::info;
+use tracing::{Level, info};
+use tracing_subscriber::{Layer, Registry, filter, fmt, layer::SubscriberExt};
 
 mod configuration;
 mod database;
@@ -23,7 +24,27 @@ struct AppState {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt::init();
+    let logfile = OpenOptions::new()
+        .append(true)
+        .create(true)
+        .open("maedic.log")
+        .expect("could not create log file");
+    let subscriber = Registry::default()
+        //default stdout logger
+        .with(
+            fmt::layer()
+                .with_ansi(true)
+                .with_filter(filter::LevelFilter::from_level(Level::DEBUG)),
+        )
+        //logging to file
+        .with(
+            fmt::layer()
+                .json()
+                .with_writer(logfile)
+                .with_ansi(true)
+                .with_filter(filter::LevelFilter::from_level(Level::DEBUG)),
+        );
+    tracing::subscriber::set_global_default(subscriber).unwrap();
     let configuration = get_configuration()?;
     info!(
         "Starting maedic with the following config {:?}",

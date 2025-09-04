@@ -4,3 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+anyhow = "1.0.99"
+axum = {version = "0.8.4", features = ["tokio", "macros", "json"]}
+config = {version = "0.15.15", features = ["yaml"]}
+secrecy = {version = "0.10.3", features = ["serde"]}
+serde = "1.0.219"
+serde-aux = "4.7.0"
+tiberius = "0.12.3"
+tokio = {version = "1.47.1", features = ["rt-multi-thread", "macros"]}
+tracing = "0.1.41"
+tracing-subscriber = "0.3.20"

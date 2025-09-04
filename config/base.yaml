@@ -1,0 +1,9 @@
+application:
+  port: 3000
+  host: "0.0.0.0"
+database:
+  host: "127.0.0.1"
+  port: 1433
+  username: "sa"
+  password: "Charlie 13"
+  database_name: PWNT

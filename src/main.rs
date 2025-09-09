@@ -24,11 +24,13 @@ struct AppState {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    let configuration = get_configuration()?;
     let logfile = OpenOptions::new()
         .append(true)
         .create(true)
-        .open("maedic.log")
+        .open(configuration.application.logfile_path.clone())
         .expect("could not create log file");
+
     let subscriber = Registry::default()
         //default stdout logger
         .with(
@@ -44,8 +46,9 @@ async fn main() -> anyhow::Result<()> {
                 .with_ansi(true)
                 .with_filter(filter::LevelFilter::from_level(Level::DEBUG)),
         );
+
     tracing::subscriber::set_global_default(subscriber).unwrap();
-    let configuration = get_configuration()?;
+
     info!(
         "Starting maedic with the following config {:?}",
         configuration

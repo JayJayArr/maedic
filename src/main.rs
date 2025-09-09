@@ -68,7 +68,6 @@ async fn main() -> anyhow::Result<()> {
     };
 
     let app = Router::new()
-        .route("/", get(|| async { "Hello, World!" }))
         .route("/health", get(check_health))
         .with_state(state);
     info!(

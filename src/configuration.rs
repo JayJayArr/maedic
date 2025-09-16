@@ -26,6 +26,7 @@ pub struct ApplicationSettings {
     pub port: u16,
     pub host: String,
     pub logfile_path: String,
+    pub service_name: String,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -43,4 +44,6 @@ pub struct DatabaseSettings {
 pub struct LimitSettings {
     pub hi_queue_count: i32,
     pub spool_file_count: i32,
+    pub max_cpu_percentage: f32,
+    pub max_ram_percentage: f32,
 }

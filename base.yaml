@@ -2,6 +2,7 @@ application:
   port: 3000
   host: "0.0.0.0"
   logfile_path: "./maedic.log"
+  service_name: "bash"
 database:
   host: "127.0.0.1"
   port: 1433
@@ -12,3 +13,5 @@ database:
 limits:
   hi_queue_count: 1000
   spool_file_count: 10 # max Number of spool files acceptable for a Channel to be consider healthy
+  max_ram_percentage: 80.0
+  max_cpu_percentage: 80.0

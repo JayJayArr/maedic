@@ -1,27 +1,33 @@
+use crate::{
+    AppState, DbClient, SystemState,
+    configuration::Settings,
+    indicators::{ServiceState, SpoolFileCount, SystemHealth},
+};
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use serde::Serialize;
+use sysinfo::Process;
 use tracing::error;
-
-use crate::{AppState, DbClient, configuration::Settings};
 
 #[derive(Serialize, Debug)]
 pub struct Health {
     pub hi_queue_size: i32,
-    pub spool_file_count: Vec<SpoolFileCount>,
+    pub unhealthy_spool_files: Vec<SpoolFileCount>,
+    pub sysinfo_health: SystemHealth,
 }
 
 pub async fn check_health(
     State(state): State<AppState>,
 ) -> Result<(StatusCode, Json<Health>), HealthError> {
     let hi_queue_size = get_hiqueue_count(state.db_client.clone()).await?;
-    let spool_file_count =
-        get_spoolfile_count(state.db_client, state.config.limits.spool_file_count).await?;
+    let unhealthy_spool_files =
+        get_unhealthy_spoolfiles(state.db_client, state.config.limits.spool_file_count).await?;
+    let system_health = get_system_health(&state.sys, &state.config).await;
 
     let health = Health {
-        spool_file_count,
+        unhealthy_spool_files,
         hi_queue_size: hi_queue_size,
+        sysinfo_health: system_health,
     };
-
     if !health_is_good(&health, &state.config) {
         error!("App reported unhealthy status {:?}", health);
         return Ok((StatusCode::SERVICE_UNAVAILABLE, Json(health)));
@@ -32,11 +38,36 @@ pub async fn check_health(
 
 fn health_is_good(health: &Health, config: &Settings) -> bool {
     if health.hi_queue_size > config.limits.hi_queue_count.into()
-        || health.spool_file_count.len() > 0
+        || health.unhealthy_spool_files.len() > 0
+        || health.sysinfo_health.used_memory_percentage > config.limits.max_ram_percentage
+        || health.sysinfo_health.global_cpu_usage_percentage > config.limits.max_cpu_percentage
+        || health.sysinfo_health.service_state != ServiceState::Up
     {
         return false;
     }
     true
+}
+
+async fn get_system_health(sys: &SystemState, config: &Settings) -> SystemHealth {
+    let mut system = sys.lock().await;
+    system.refresh_all();
+
+    let matchin_process_list: Vec<&Process> = system
+        .processes_by_name(config.application.service_name.as_ref())
+        .into_iter()
+        .collect();
+    let service_state = if matchin_process_list.len() >= 1 {
+        ServiceState::Up
+    } else {
+        ServiceState::Down
+    };
+
+    return SystemHealth {
+        service_state,
+        global_cpu_usage_percentage: system.global_cpu_usage(),
+        used_memory_percentage: (system.used_memory() as f32 / system.total_memory() as f32)
+            * 100.0,
+    };
 }
 
 async fn get_hiqueue_count(client: DbClient) -> Result<i32, HealthError> {
@@ -54,7 +85,7 @@ async fn get_hiqueue_count(client: DbClient) -> Result<i32, HealthError> {
     Ok(size)
 }
 
-async fn get_spoolfile_count(
+async fn get_unhealthy_spoolfiles(
     client: DbClient,
     limit_per_channel: i32,
 ) -> Result<Vec<SpoolFileCount>, HealthError> {
@@ -113,22 +144,5 @@ impl IntoResponse for HealthError {
             }
         };
         (status, message).into_response()
-    }
-}
-
-#[derive(Serialize, Debug)]
-pub struct SpoolFileCount {
-    spool_file_count: i32,
-    description: String,
-    directory: String,
-}
-
-impl Into<SpoolFileCount> for tiberius::Row {
-    fn into(self) -> SpoolFileCount {
-        return SpoolFileCount {
-            description: self.get::<&str, &str>("description").unwrap().to_string(),
-            spool_file_count: self.get("spool_file_count").unwrap(),
-            directory: self.get::<&str, &str>("directory").unwrap().to_string(),
-        };
     }
 }

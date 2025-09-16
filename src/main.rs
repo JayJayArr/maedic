@@ -6,6 +6,7 @@ use crate::{
     health::check_health,
 };
 use axum::{Router, routing::get};
+use sysinfo::System;
 use tiberius::Client;
 use tokio::sync::Mutex;
 use tokio_util::compat::Compat;
@@ -15,13 +16,16 @@ use tracing_subscriber::{Layer, Registry, filter, fmt, layer::SubscriberExt};
 mod configuration;
 mod database;
 mod health;
+mod indicators;
 
 type DbClient = Arc<Mutex<Client<Compat<tokio::net::TcpStream>>>>;
+type SystemState = Arc<Mutex<System>>;
 
 #[derive(Clone)]
 struct AppState {
     pub db_client: DbClient,
     pub config: Settings,
+    pub sys: SystemState,
 }
 
 #[tokio::main]
@@ -67,6 +71,7 @@ async fn main() -> anyhow::Result<()> {
     let state = AppState {
         db_client: Arc::new(Mutex::new(client)),
         config: configuration.clone(),
+        sys: Arc::new(Mutex::new(System::new_all().into())),
     };
 
     let app = Router::new()

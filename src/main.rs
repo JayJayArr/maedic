@@ -16,9 +16,11 @@ mod configuration;
 mod database;
 mod health;
 
+type DbClient = Arc<Mutex<Client<Compat<tokio::net::TcpStream>>>>;
+
 #[derive(Clone)]
 struct AppState {
-    pub db_client: Arc<Mutex<Client<Compat<tokio::net::TcpStream>>>>,
+    pub db_client: DbClient,
     pub config: Settings,
 }
 

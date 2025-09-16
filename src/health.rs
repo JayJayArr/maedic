@@ -1,12 +1,8 @@
-use std::sync::Arc;
-
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use serde::Serialize;
-use tiberius::Client;
-use tokio_util::compat::Compat;
 use tracing::error;
 
-use crate::AppState;
+use crate::{AppState, DbClient, configuration::Settings};
 
 #[derive(Serialize, Debug)]
 pub struct Health {
@@ -21,27 +17,29 @@ pub async fn check_health(
     let spool_file_count =
         get_spoolfile_count(state.db_client, state.config.limits.spool_file_count).await?;
 
-    if hi_queue_size > state.config.limits.hi_queue_count.into() || spool_file_count.len() > 0 {
-        let health = Health {
-            spool_file_count,
-            hi_queue_size: hi_queue_size,
-        };
+    let health = Health {
+        spool_file_count,
+        hi_queue_size: hi_queue_size,
+    };
+
+    if !health_is_good(&health, &state.config) {
         error!("App reported unhealthy status {:?}", health);
         return Ok((StatusCode::SERVICE_UNAVAILABLE, Json(health)));
+    } else {
+        return Ok((StatusCode::OK, Json(health)));
     }
-
-    Ok((
-        StatusCode::OK,
-        Json(Health {
-            spool_file_count,
-            hi_queue_size: hi_queue_size,
-        }),
-    ))
 }
 
-async fn get_hiqueue_count(
-    client: Arc<tokio::sync::Mutex<Client<Compat<tokio::net::TcpStream>>>>,
-) -> Result<i32, HealthError> {
+fn health_is_good(health: &Health, config: &Settings) -> bool {
+    if health.hi_queue_size > config.limits.hi_queue_count.into()
+        || health.spool_file_count.len() > 0
+    {
+        return false;
+    }
+    true
+}
+
+async fn get_hiqueue_count(client: DbClient) -> Result<i32, HealthError> {
     let mut client = client.lock().await;
     let size = client
         .simple_query("SELECT COUNT(*) as HIQUEUECOUNT FROM HI_QUEUE")
@@ -57,7 +55,7 @@ async fn get_hiqueue_count(
 }
 
 async fn get_spoolfile_count(
-    client: Arc<tokio::sync::Mutex<Client<Compat<tokio::net::TcpStream>>>>,
+    client: DbClient,
     limit_per_channel: i32,
 ) -> Result<Vec<SpoolFileCount>, HealthError> {
     let mut client = client.lock().await;

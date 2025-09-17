@@ -2,7 +2,7 @@ application:
   port: 3000
   host: "0.0.0.0"
   logfile_path: "./maedic.log"
-  service_name: "bash"
+  service_name: "micserver.exe"
 database:
   host: "127.0.0.1"
   port: 1433

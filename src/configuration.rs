@@ -47,3 +47,30 @@ pub struct LimitSettings {
     pub max_cpu_percentage: f32,
     pub max_ram_percentage: f32,
 }
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            application: ApplicationSettings {
+                port: 3000,
+                host: "0.0.0.0".into(),
+                logfile_path: "./maedic.log".into(),
+                service_name: "micserver.exe".into(),
+            },
+            database: DatabaseSettings {
+                port: 1433,
+                host: "0.0.0.0".to_string(),
+                username: "sa".into(),
+                password: "Charlie".into(),
+                database_name: "PWNT".into(),
+                trust_cert: true,
+            },
+            limits: LimitSettings {
+                hi_queue_count: 1000,
+                spool_file_count: 10,
+                max_cpu_percentage: 80.0,
+                max_ram_percentage: 80.0,
+            },
+        }
+    }
+}

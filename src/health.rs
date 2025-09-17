@@ -146,3 +146,62 @@ impl IntoResponse for HealthError {
         (status, message).into_response()
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+    const GOOD_HEALTH: Health = Health {
+        hi_queue_size: 0,
+        unhealthy_spool_files: Vec::new(),
+        sysinfo_health: SystemHealth {
+            service_state: ServiceState::Up,
+            global_cpu_usage_percentage: 5.0,
+            used_memory_percentage: 5.0,
+        },
+    };
+
+    #[test]
+    fn is_good_with_perfect_health() {
+        assert_eq!(health_is_good(&GOOD_HEALTH, &Settings::default()), true);
+    }
+
+    #[test]
+    fn should_error_on_service_down() {
+        let mut health = GOOD_HEALTH;
+        health.sysinfo_health.service_state = ServiceState::Down;
+        assert_eq!(health_is_good(&health, &Settings::default()), false);
+    }
+
+    #[test]
+    fn should_error_on_big_hi_queue() {
+        let mut health = GOOD_HEALTH;
+        health.hi_queue_size = 1001;
+        assert_eq!(health_is_good(&health, &Settings::default()), false);
+    }
+
+    #[test]
+    fn should_error_on_unhealthy_spool_files() {
+        let mut health = GOOD_HEALTH;
+        health.unhealthy_spool_files = vec![SpoolFileCount {
+            spool_file_count: 11,
+            description: "yeet".to_string(),
+            directory: "C:\\Yeet\\ProWatch".to_string(),
+        }];
+        assert_eq!(health_is_good(&health, &Settings::default()), false);
+    }
+
+    #[test]
+    fn should_error_on_high_cpu_usage() {
+        let mut health = GOOD_HEALTH;
+        health.sysinfo_health.used_memory_percentage = 81.0;
+        assert_eq!(health_is_good(&health, &Settings::default()), false);
+    }
+
+    #[test]
+    fn should_error_on_high_ram_usage() {
+        let mut health = GOOD_HEALTH;
+        health.sysinfo_health.used_memory_percentage = 81.0;
+        assert_eq!(health_is_good(&health, &Settings::default()), false);
+    }
+}

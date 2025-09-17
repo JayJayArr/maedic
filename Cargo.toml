@@ -6,9 +6,9 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.99"
 axum = {version = "0.8.4", features = ["tokio", "macros", "json"]}
-config = {version = "0.15.15", features = ["yaml"]}
+config = {version = "0.15.16", features = ["yaml"]}
 secrecy = {version = "0.10.3", features = ["serde"]}
-serde = "1.0.219"
+serde = "1.0.225"
 serde-aux = "4.7.0"
 sysinfo = "0.37.0"
 thiserror = "2.0.16"

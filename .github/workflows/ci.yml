@@ -1,0 +1,50 @@
+name: CI
+on:
+  repository_dispatch:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: -D warnings
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@nextest
+      - uses: Swatinem/rust-cache@v2
+      - name: Compile
+        run: cargo check --locked
+      - name: Test
+        run: cargo nextest run
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Run cargo fmt (check if all code is rustfmt-ed)
+        uses: actions-rs/cargo@v2
+        with:
+          command: fmt
+          args: --all -- --check
+      - name: Run cargo clippy (deny warnings)
+        uses: actions-rs/cargo@v2
+        with:
+          command: clippy
+          args: --all-targets --all-features -- -D warnings

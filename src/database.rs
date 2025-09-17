@@ -24,6 +24,5 @@ pub async fn setup_database_client(
     let tcp = TcpStream::connect(config.get_addr()).await?;
     tcp.set_nodelay(true)?;
 
-    
     Client::connect(config, tcp.compat_write()).await
 }

@@ -6,6 +6,8 @@ Currently featuring:
 
 - Spool Files
 - Hi_Queue Size
+- PW main Service monitoring
+- Sysinfo checks incl. CPU/RAM
 
 All Health Checks are available via a configurable REST endpoint
 

@@ -71,7 +71,7 @@ async fn main() -> anyhow::Result<()> {
     let state = AppState {
         db_client: Arc::new(Mutex::new(client)),
         config: configuration.clone(),
-        sys: Arc::new(Mutex::new(System::new_all().into())),
+        sys: Arc::new(Mutex::new(System::new_all())),
     };
 
     let app = Router::new()

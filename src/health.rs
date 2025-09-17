@@ -25,20 +25,20 @@ pub async fn check_health(
 
     let health = Health {
         unhealthy_spool_files,
-        hi_queue_size: hi_queue_size,
+        hi_queue_size,
         sysinfo_health: system_health,
     };
     if !health_is_good(&health, &state.config) {
         error!("App reported unhealthy status {:?}", health);
-        return Ok((StatusCode::SERVICE_UNAVAILABLE, Json(health)));
+        Ok((StatusCode::SERVICE_UNAVAILABLE, Json(health)))
     } else {
-        return Ok((StatusCode::OK, Json(health)));
+        Ok((StatusCode::OK, Json(health)))
     }
 }
 
 fn health_is_good(health: &Health, config: &Settings) -> bool {
-    if health.hi_queue_size > config.limits.hi_queue_count.into()
-        || health.unhealthy_spool_files.len() > 0
+    if health.hi_queue_size > config.limits.hi_queue_count
+        || !health.unhealthy_spool_files.is_empty()
         || health.sysinfo_health.used_memory_percentage > config.limits.max_ram_percentage
         || health.sysinfo_health.global_cpu_usage_percentage > config.limits.max_cpu_percentage
         || health.sysinfo_health.service_state != ServiceState::Up
@@ -54,20 +54,19 @@ async fn get_system_health(sys: &SystemState, config: &Settings) -> SystemHealth
 
     let matchin_process_list: Vec<&Process> = system
         .processes_by_name(config.application.service_name.as_ref())
-        .into_iter()
         .collect();
-    let service_state = if matchin_process_list.len() >= 1 {
+    let service_state = if !matchin_process_list.is_empty() {
         ServiceState::Up
     } else {
         ServiceState::Down
     };
 
-    return SystemHealth {
+    SystemHealth {
         service_state,
         global_cpu_usage_percentage: system.global_cpu_usage(),
         used_memory_percentage: (system.used_memory() as f32 / system.total_memory() as f32)
             * 100.0,
-    };
+    }
 }
 
 async fn get_hiqueue_count(client: DbClient) -> Result<i32, HealthError> {
@@ -79,7 +78,7 @@ async fn get_hiqueue_count(client: DbClient) -> Result<i32, HealthError> {
         .await?
         .unwrap()
         .get::<i32, &str>("HIQUEUECOUNT")
-        .ok_or(HealthError::ConversionError(
+        .ok_or(HealthError::Conversion(
             "Failed to convert HIQUEUECOUNT".to_string(),
         ))?;
     Ok(size)
@@ -109,33 +108,33 @@ async fn get_unhealthy_spoolfiles(
 #[derive(thiserror::Error, Debug)]
 pub enum HealthError {
     #[error(transparent)]
-    UnexpectedError(#[from] anyhow::Error),
+    Unexpected(#[from] anyhow::Error),
 
     #[error(transparent)]
-    DatabaseError(#[from] tiberius::error::Error),
+    Database(#[from] tiberius::error::Error),
 
     #[error("{0}")]
-    ConversionError(String),
+    Conversion(String),
 }
 
 impl IntoResponse for HealthError {
     fn into_response(self) -> axum::response::Response {
         let (status, message) = match self {
-            Self::UnexpectedError(err) => {
+            Self::Unexpected(err) => {
                 tracing::error!("{:?}", err);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Something went wrong".to_owned(),
                 )
             }
-            Self::DatabaseError(err) => {
+            Self::Database(err) => {
                 tracing::error!("{:?}", err);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Something went wrong with the database queries".to_owned(),
                 )
             }
-            Self::ConversionError(err) => {
+            Self::Conversion(err) => {
                 tracing::error!("{:?}", err);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
@@ -163,21 +162,21 @@ mod tests {
 
     #[test]
     fn is_good_with_perfect_health() {
-        assert_eq!(health_is_good(&GOOD_HEALTH, &Settings::default()), true);
+        assert!(health_is_good(&GOOD_HEALTH, &Settings::default()));
     }
 
     #[test]
     fn should_error_on_service_down() {
         let mut health = GOOD_HEALTH;
         health.sysinfo_health.service_state = ServiceState::Down;
-        assert_eq!(health_is_good(&health, &Settings::default()), false);
+        assert!(!health_is_good(&health, &Settings::default()));
     }
 
     #[test]
     fn should_error_on_big_hi_queue() {
         let mut health = GOOD_HEALTH;
         health.hi_queue_size = 1001;
-        assert_eq!(health_is_good(&health, &Settings::default()), false);
+        assert!(!health_is_good(&health, &Settings::default()));
     }
 
     #[test]
@@ -188,20 +187,20 @@ mod tests {
             description: "yeet".to_string(),
             directory: "C:\\Yeet\\ProWatch".to_string(),
         }];
-        assert_eq!(health_is_good(&health, &Settings::default()), false);
+        assert!(!health_is_good(&health, &Settings::default()));
     }
 
     #[test]
     fn should_error_on_high_cpu_usage() {
         let mut health = GOOD_HEALTH;
         health.sysinfo_health.used_memory_percentage = 81.0;
-        assert_eq!(health_is_good(&health, &Settings::default()), false);
+        assert!(!health_is_good(&health, &Settings::default()));
     }
 
     #[test]
     fn should_error_on_high_ram_usage() {
         let mut health = GOOD_HEALTH;
         health.sysinfo_health.used_memory_percentage = 81.0;
-        assert_eq!(health_is_good(&health, &Settings::default()), false);
+        assert!(!health_is_good(&health, &Settings::default()));
     }
 }

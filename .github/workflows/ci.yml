@@ -39,6 +39,6 @@ jobs:
           components: clippy
       - uses: Swatinem/rust-cache@v2
       - name: Run cargo clippy (deny warnings)
-        run: cargo clippy --workspace --all-targets --all-features -- -d warnings
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
       - name: Run cargo fmt (check if all code is rustfmt-ed)
         run: cargo fmt --all --check

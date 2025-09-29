@@ -63,9 +63,11 @@ async fn get_system_health(sys: &SystemState, config: &Settings) -> SystemHealth
 
     SystemHealth {
         service_state,
-        global_cpu_usage_percentage: system.global_cpu_usage(),
-        used_memory_percentage: (system.used_memory() as f32 / system.total_memory() as f32)
-            * 100.0,
+        global_cpu_usage_percentage: (system.global_cpu_usage() * 100.0).ceil() / 100.0,
+        used_memory_percentage: ((system.used_memory() as f32 / system.total_memory() as f32)
+            * 10000.0)
+            .ceil()
+            / 100.0,
     }
 }
 

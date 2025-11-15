@@ -3,6 +3,14 @@ name = "maedic"
 version = "0.2.0"
 edition = "2024"
 
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+path= "src/main.rs"
+name = "maedic"
+
 [dependencies]
 anyhow = "1.0.100"
 axum = {version = "0.8.7", features = ["tokio", "macros", "json"]}

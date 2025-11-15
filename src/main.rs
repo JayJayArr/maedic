@@ -1,32 +1,13 @@
-use std::{fs::OpenOptions, sync::Arc};
-
-use crate::{
-    configuration::{Settings, get_configuration},
+use maedic::{
+    configuration::{AppState, get_configuration},
     database::setup_database_client,
-    health::check_health,
+    run::run,
 };
-use axum::{Router, routing::get};
+use std::{fs::OpenOptions, sync::Arc};
 use sysinfo::System;
-use tiberius::Client;
 use tokio::sync::Mutex;
-use tokio_util::compat::Compat;
 use tracing::{Level, info};
 use tracing_subscriber::{Layer, Registry, filter, fmt, layer::SubscriberExt};
-
-mod configuration;
-mod database;
-mod health;
-mod indicators;
-
-type DbClient = Arc<Mutex<Client<Compat<tokio::net::TcpStream>>>>;
-type SystemState = Arc<Mutex<System>>;
-
-#[derive(Clone)]
-struct AppState {
-    pub db_client: DbClient,
-    pub config: Settings,
-    pub sys: SystemState,
-}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -74,15 +55,9 @@ async fn main() -> anyhow::Result<()> {
         sys: Arc::new(Mutex::new(System::new_all())),
     };
 
-    let app = Router::new()
-        .route("/health", get(check_health))
-        .with_state(state);
-    info!(
-        "Starting maedic on port: {}",
-        configuration.application.port
-    );
-
-    axum::serve(listener, app).await?;
+    run(listener, state, configuration)
+        .await
+        .expect("Failed to start application");
 
     Ok(())
 }

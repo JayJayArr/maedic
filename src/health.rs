@@ -1,6 +1,5 @@
 use crate::{
-    AppState, DbClient, SystemState,
-    configuration::Settings,
+    configuration::{AppState, DbClient, Settings, SystemState},
     indicators::{ServiceState, SpoolFileCount, SystemHealth},
 };
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
@@ -105,6 +104,10 @@ async fn get_unhealthy_spoolfiles(
         .collect();
 
     Ok(spool_file_counts)
+}
+
+pub async fn get_config_handler(State(state): State<AppState>) -> (StatusCode, Json<Settings>) {
+    (StatusCode::OK, Json(state.config))
 }
 
 #[derive(thiserror::Error, Debug)]

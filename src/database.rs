@@ -20,6 +20,8 @@ pub async fn setup_database_client(
         config.trust_cert();
     }
     config.database(db_config.database_name);
+    // Connection should always be readonly as we are just monitoring
+    config.readonly(true);
 
     let tcp = TcpStream::connect(config.get_addr()).await?;
     tcp.set_nodelay(true)?;

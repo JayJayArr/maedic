@@ -1,7 +1,12 @@
 use config::Config;
 use secrecy::SecretString;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_aux::field_attributes::deserialize_number_from_string;
+use std::sync::Arc;
+use sysinfo::System;
+use tiberius::Client;
+use tokio::sync::Mutex;
+use tokio_util::compat::Compat;
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine current directory.");
@@ -13,14 +18,14 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
         .try_deserialize()
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Settings {
     pub application: ApplicationSettings,
     pub database: DatabaseSettings,
     pub limits: LimitSettings,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct ApplicationSettings {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
@@ -29,18 +34,19 @@ pub struct ApplicationSettings {
     pub service_name: String,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct DatabaseSettings {
     pub host: String,
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
     pub username: String,
+    #[serde(skip_serializing)]
     pub password: SecretString,
     pub database_name: String,
     pub trust_cert: bool,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct LimitSettings {
     pub hi_queue_count: i32,
     pub spool_file_count: i32,
@@ -73,4 +79,14 @@ impl Default for Settings {
             },
         }
     }
+}
+
+pub type DbClient = Arc<Mutex<Client<Compat<tokio::net::TcpStream>>>>;
+pub type SystemState = Arc<Mutex<System>>;
+
+#[derive(Clone)]
+pub struct AppState {
+    pub db_client: DbClient,
+    pub config: Settings,
+    pub sys: SystemState,
 }

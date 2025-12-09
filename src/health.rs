@@ -1,5 +1,5 @@
 use crate::{
-    configuration::{AppState, DbClient, Settings, SystemState},
+    configuration::{AppState, DbClient, LimitSettings, Settings, SystemState},
     indicators::{ServiceState, SpoolFileCount, SystemHealth},
 };
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
@@ -106,8 +106,14 @@ async fn get_unhealthy_spoolfiles(
     Ok(spool_file_counts)
 }
 
-pub async fn get_config_handler(State(state): State<AppState>) -> (StatusCode, Json<Settings>) {
-    (StatusCode::OK, Json(state.config))
+pub async fn get_config_handler(
+    State(state): State<AppState>,
+) -> Result<(StatusCode, Json<LimitSettings>), StatusCode> {
+    if state.config.application.expose_config {
+        Ok((StatusCode::OK, Json(state.config.limits)))
+    } else {
+        Err(StatusCode::NOT_FOUND)
+    }
 }
 
 #[derive(thiserror::Error, Debug)]

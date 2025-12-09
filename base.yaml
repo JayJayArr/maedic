@@ -4,6 +4,7 @@ application:
   host: 127.0.0.1
   logfile_path: ./maedic.log
   service_name: micserver.exe
+  expose_config: true
 database:
   host: 127.0.0.1
   port: 1433

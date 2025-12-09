@@ -32,6 +32,7 @@ pub struct ApplicationSettings {
     pub host: String,
     pub logfile_path: String,
     pub service_name: String,
+    pub expose_config: bool,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
@@ -62,6 +63,7 @@ impl Default for Settings {
                 host: "0.0.0.0".into(),
                 logfile_path: "./maedic.log".into(),
                 service_name: "micserver.exe".into(),
+                expose_config: false,
             },
             database: DatabaseSettings {
                 port: 1433,

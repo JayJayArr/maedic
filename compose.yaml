@@ -1,0 +1,8 @@
+services:
+  maedic:
+    volumes:
+      - ./base.yaml:/app/base.yaml
+    build:
+      context: .
+    ports:
+      - 3000:3000

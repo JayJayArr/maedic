@@ -1,6 +1,6 @@
 [package]
 name = "maedic"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 
 
@@ -15,6 +15,7 @@ name = "maedic"
 anyhow = "1.0.100"
 axum = {version = "0.8.7", features = ["tokio", "macros", "json"]}
 config = {version = "0.15.19", features = ["yaml"]}
+rstest = "0.26.1"
 secrecy = {version = "0.10.3", features = ["serde"]}
 serde = "1.0.228"
 serde-aux = "4.7.0"

@@ -3,7 +3,7 @@ application:
   port: 3000
   host: 127.0.0.1
   logfile_path: ./maedic.log
-  service_name: micserver.exe
+  service_name: micserver.exe # The name of the ProWatch Service
   expose_config: true
 database:
   host: 127.0.0.1
@@ -13,7 +13,9 @@ database:
   database_name: PWNT
   trust_cert: true
 limits:
+  # set any value to 0 to deactivate the check
   hi_queue_count: 1000
   spool_file_count: 10 #max no of spool files acceptable for a healthy channel
   max_ram_percentage: 80.0
   max_cpu_percentage: 80.0
+  check_local_service: true

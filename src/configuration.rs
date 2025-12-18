@@ -18,7 +18,7 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
         .try_deserialize()
 }
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug, Default)]
 pub struct Settings {
     pub application: ApplicationSettings,
     pub database: DatabaseSettings,
@@ -53,32 +53,41 @@ pub struct LimitSettings {
     pub spool_file_count: i32,
     pub max_cpu_percentage: f32,
     pub max_ram_percentage: f32,
+    pub check_local_service: bool,
 }
 
-impl Default for Settings {
+impl Default for DatabaseSettings {
     fn default() -> Self {
         Self {
-            application: ApplicationSettings {
-                port: 3000,
-                host: "0.0.0.0".into(),
-                logfile_path: "./maedic.log".into(),
-                service_name: "micserver.exe".into(),
-                expose_config: false,
-            },
-            database: DatabaseSettings {
-                port: 1433,
-                host: "0.0.0.0".to_string(),
-                username: "sa".into(),
-                password: "Charlie".into(),
-                database_name: "PWNT".into(),
-                trust_cert: true,
-            },
-            limits: LimitSettings {
-                hi_queue_count: 1000,
-                spool_file_count: 10,
-                max_cpu_percentage: 80.0,
-                max_ram_percentage: 80.0,
-            },
+            port: 1433,
+            host: "0.0.0.0".to_string(),
+            username: "sa".into(),
+            password: "Charlie".into(),
+            database_name: "PWNT".into(),
+            trust_cert: true,
+        }
+    }
+}
+
+impl Default for LimitSettings {
+    fn default() -> Self {
+        Self {
+            hi_queue_count: 1000,
+            spool_file_count: 10,
+            max_cpu_percentage: 80.0,
+            max_ram_percentage: 80.0,
+            check_local_service: false,
+        }
+    }
+}
+impl Default for ApplicationSettings {
+    fn default() -> Self {
+        Self {
+            port: 3000,
+            host: "0.0.0.0".into(),
+            logfile_path: "./maedic.log".into(),
+            service_name: "micserver.exe".into(),
+            expose_config: false,
         }
     }
 }

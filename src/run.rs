@@ -1,9 +1,10 @@
 use crate::{
     configuration::{AppState, Settings},
+    database::self_health,
     health::{check_health, get_config_handler},
 };
-use axum::{Router, http::StatusCode};
-use axum::{response::IntoResponse, routing::get};
+use axum::Router;
+use axum::routing::get;
 use tokio::net::TcpListener;
 use tracing::info;
 
@@ -23,8 +24,4 @@ pub async fn run(
     );
     axum::serve(listener, app).await?;
     Ok(())
-}
-
-async fn self_health() -> impl IntoResponse {
-    StatusCode::OK
 }

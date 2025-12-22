@@ -6,7 +6,8 @@ application:
   service_name: micserver.exe # The name of the ProWatch Service
   expose_config: true
 database:
-  host: 127.0.0.1
+  # host: 172.17.0.1
+  host: localhost
   port: 1433
   username: sa
   password: Charlie 13

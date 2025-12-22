@@ -22,6 +22,8 @@ RUN apt-get update -y \
   # Clean up
   && apt-get autoremove -y \
   && apt-get clean -y \
+  # Install curl for self health check
+  && apt-get -y install curl \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder  /app/target/release/maedic maedic

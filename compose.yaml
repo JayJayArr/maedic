@@ -1,8 +1,21 @@
 services:
   maedic:
+    container_name: maedic
+    restart: always
     volumes:
       - ./base.yaml:/app/base.yaml
     build:
       context: .
     ports:
       - 3000:3000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/self"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

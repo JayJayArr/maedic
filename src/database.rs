@@ -7,7 +7,7 @@ use tokio_util::compat::{Compat, TokioAsyncWriteCompatExt};
 
 use crate::{
     configuration::{AppState, DatabaseSettings, DbClient},
-    health::HealthError,
+    error::HealthError,
 };
 
 #[derive(Debug, Clone, Serialize)]

@@ -1,15 +1,35 @@
 use axum::{extract::State, http::StatusCode, response::IntoResponse};
 use secrecy::ExposeSecret;
+use serde::Serialize;
 use tiberius::{AuthMethod, Client, Config};
 use tokio::net::TcpStream;
 use tokio_util::compat::{Compat, TokioAsyncWriteCompatExt};
 
 use crate::configuration::{AppState, DatabaseSettings, DbClient};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 enum DatabaseConnectionState {
-    Up,
-    Down,
+    Healthy,
+    Unhealthy,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct SelfHealth {
+    database_health: DatabaseConnectionState,
+}
+
+impl SelfHealth {
+    fn healthy() -> Self {
+        Self {
+            database_health: DatabaseConnectionState::Healthy,
+        }
+    }
+
+    fn unhealthy() -> Self {
+        Self {
+            database_health: DatabaseConnectionState::Unhealthy,
+        }
+    }
 }
 
 pub async fn setup_database_client(
@@ -36,14 +56,16 @@ pub async fn setup_database_client(
     Client::connect(config, tcp.compat_write()).await
 }
 
-pub async fn self_health(State(state): State<AppState>) -> Result<StatusCode, SelfHealthError> {
+pub async fn self_health(State(state): State<AppState>) -> SelfHealth {
     match get_db_status(state.db_client).await {
         //TODO: Reconnect the DB Client on failure
         Ok(state) => match state {
-            DatabaseConnectionState::Up => Ok(StatusCode::OK),
-            DatabaseConnectionState::Down => Err(SelfHealthError::Disconnected),
+            DatabaseConnectionState::Healthy => SelfHealth::healthy(),
+            DatabaseConnectionState::Unhealthy => SelfHealth::unhealthy(),
         },
-        Err(_) => Err(SelfHealthError::Disconnected),
+        Err(_) => SelfHealth {
+            database_health: DatabaseConnectionState::Unhealthy,
+        },
     }
 }
 
@@ -57,10 +79,10 @@ async fn get_db_status(client: DbClient) -> Result<DatabaseConnectionState, Self
         .await?
         .unwrap()
         .get::<i32, &str>("connection_state")
-        .ok_or(DatabaseConnectionState::Down)
+        .ok_or(DatabaseConnectionState::Unhealthy)
     {
-        Ok(1) => Ok(DatabaseConnectionState::Up),
-        _ => Ok(DatabaseConnectionState::Down),
+        Ok(1) => Ok(DatabaseConnectionState::Healthy),
+        _ => Ok(DatabaseConnectionState::Unhealthy),
     }
 }
 
@@ -71,36 +93,15 @@ pub enum SelfHealthError {
 
     #[error(transparent)]
     Database(#[from] tiberius::error::Error),
-
-    #[error("Database Disconnect")]
-    Disconnected,
 }
 
-impl IntoResponse for SelfHealthError {
+impl IntoResponse for SelfHealth {
     fn into_response(self) -> axum::response::Response {
-        let (status, message) = match self {
-            Self::Unexpected(err) => {
-                tracing::error!("{:?}", err);
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Something went wrong".to_owned(),
-                )
+        match self.database_health {
+            DatabaseConnectionState::Healthy => (StatusCode::OK, self).into_response(),
+            DatabaseConnectionState::Unhealthy => {
+                (StatusCode::SERVICE_UNAVAILABLE, self).into_response()
             }
-            Self::Database(err) => {
-                tracing::error!("{:?}", err);
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Something went wrong with the database queries".to_owned(),
-                )
-            }
-            Self::Disconnected => {
-                tracing::error!("Database disconnected, trying reconnect...");
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Database disconnected, trying to reconnect...".to_owned(),
-                )
-            }
-        };
-        (status, message).into_response()
+        }
     }
 }

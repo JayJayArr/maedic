@@ -5,7 +5,10 @@ use tiberius::{AuthMethod, Client, Config};
 use tokio::net::TcpStream;
 use tokio_util::compat::{Compat, TokioAsyncWriteCompatExt};
 
-use crate::configuration::{AppState, DatabaseSettings, DbClient};
+use crate::{
+    configuration::{AppState, DatabaseSettings, DbClient},
+    health::HealthError,
+};
 
 #[derive(Debug, Clone, Serialize)]
 enum DatabaseConnectionState {
@@ -63,13 +66,11 @@ pub async fn self_health(State(state): State<AppState>) -> SelfHealth {
             DatabaseConnectionState::Healthy => SelfHealth::healthy(),
             DatabaseConnectionState::Unhealthy => SelfHealth::unhealthy(),
         },
-        Err(_) => SelfHealth {
-            database_health: DatabaseConnectionState::Unhealthy,
-        },
+        Err(_) => SelfHealth::unhealthy(),
     }
 }
 
-async fn get_db_status(client: DbClient) -> Result<DatabaseConnectionState, SelfHealthError> {
+async fn get_db_status(client: DbClient) -> Result<DatabaseConnectionState, HealthError> {
     match client
         .lock()
         .await
@@ -84,15 +85,6 @@ async fn get_db_status(client: DbClient) -> Result<DatabaseConnectionState, Self
         Ok(1) => Ok(DatabaseConnectionState::Healthy),
         _ => Ok(DatabaseConnectionState::Unhealthy),
     }
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum SelfHealthError {
-    #[error(transparent)]
-    Unexpected(#[from] anyhow::Error),
-
-    #[error(transparent)]
-    Database(#[from] tiberius::error::Error),
 }
 
 impl IntoResponse for SelfHealth {

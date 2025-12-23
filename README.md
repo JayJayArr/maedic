@@ -1,5 +1,7 @@
 # Maedic
 
+![Tests](https://img.shields.io/github/actions/workflow/status/JayJayArr/maedic/ci.yml)
+
 Service to monitor a PW-installation for its health.
 
 Currently featuring the following PW specific checks:

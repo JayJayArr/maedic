@@ -1,7 +1,7 @@
 use axum::{http::StatusCode, response::IntoResponse};
 
 #[derive(thiserror::Error, Debug)]
-pub enum HealthError {
+pub enum ApplicationError {
     #[error(transparent)]
     Unexpected(#[from] anyhow::Error),
 
@@ -12,29 +12,20 @@ pub enum HealthError {
     Conversion(String),
 }
 
-impl IntoResponse for HealthError {
+impl IntoResponse for ApplicationError {
     fn into_response(self) -> axum::response::Response {
         let (status, message) = match self {
             Self::Unexpected(err) => {
                 tracing::error!("{:?}", err);
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Something went wrong".to_owned(),
-                )
+                (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
             }
             Self::Database(err) => {
                 tracing::error!("{:?}", err);
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Something went wrong with the database queries".to_owned(),
-                )
+                (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
             }
             Self::Conversion(err) => {
                 tracing::error!("{:?}", err);
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Error when converting a DB value".to_owned(),
-                )
+                (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
             }
         };
         (status, message).into_response()

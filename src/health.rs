@@ -1,6 +1,6 @@
 use crate::{
     configuration::{AppState, DbClient, LimitSettings, SystemState},
-    error::HealthError,
+    error::ApplicationError,
     indicators::{ServiceState, SpoolFileCount},
 };
 use axum::{Json, extract::State, http::StatusCode};
@@ -26,7 +26,7 @@ pub struct PWHealth {
 
 pub async fn check_health(
     State(state): State<AppState>,
-) -> Result<(StatusCode, Json<PWHealth>), HealthError> {
+) -> Result<(StatusCode, Json<PWHealth>), ApplicationError> {
     let limits = state.config.limits;
     // HIQUEUE
     let hi_queue_size = if limits.hi_queue_count == 0 {
@@ -139,7 +139,7 @@ async fn check_local_service(sys: &SystemState, service_name: &String) -> Servic
     }
 }
 
-async fn get_hiqueue_count(client: DbClient) -> Result<i32, HealthError> {
+async fn get_hiqueue_count(client: DbClient) -> Result<i32, ApplicationError> {
     let mut client = client.lock().await;
     let size = client
         .simple_query("SELECT COUNT(*) as HIQUEUECOUNT FROM HI_QUEUE")
@@ -148,7 +148,7 @@ async fn get_hiqueue_count(client: DbClient) -> Result<i32, HealthError> {
         .await?
         .unwrap()
         .get::<i32, &str>("HIQUEUECOUNT")
-        .ok_or(HealthError::Conversion(
+        .ok_or(ApplicationError::Conversion(
             "Failed to convert HIQUEUECOUNT".to_string(),
         ))?;
     Ok(size)
@@ -157,7 +157,7 @@ async fn get_hiqueue_count(client: DbClient) -> Result<i32, HealthError> {
 async fn get_unhealthy_spoolfiles(
     client: DbClient,
     limit_per_channel: i32,
-) -> Result<Vec<SpoolFileCount>, HealthError> {
+) -> Result<Vec<SpoolFileCount>, ApplicationError> {
     let mut client = client.lock().await;
     let queryresult = client
         .query("select DESCRP as description, SPOOl_FILE_COUNT as spool_file_count, SPOOL_DIR as directory from CHANNEL where Installed = 'Y' and SPOOl_FILE_COUNT > @P1", &[&limit_per_channel])

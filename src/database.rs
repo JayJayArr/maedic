@@ -1,13 +1,14 @@
 use axum::{extract::State, http::StatusCode, response::IntoResponse};
 use secrecy::ExposeSecret;
 use serde::Serialize;
+use std::fmt::Display;
 use tiberius::{AuthMethod, Client, Config};
 use tokio::net::TcpStream;
 use tokio_util::compat::{Compat, TokioAsyncWriteCompatExt};
 
 use crate::{
     configuration::{AppState, DatabaseSettings, DbClient},
-    error::HealthError,
+    error::ApplicationError,
 };
 
 #[derive(Debug, Clone, Serialize)]
@@ -20,20 +21,20 @@ enum DatabaseConnectionState {
 /// Checks for a healthy Database connection
 #[derive(Clone, Debug, Serialize)]
 pub struct MaedicHealth {
-    database_health: DatabaseConnectionState,
+    database_connection: DatabaseConnectionState,
 }
 
 /// Default values for MaedicHealth
 impl MaedicHealth {
     fn healthy() -> Self {
         Self {
-            database_health: DatabaseConnectionState::Healthy,
+            database_connection: DatabaseConnectionState::Healthy,
         }
     }
 
     fn unhealthy() -> Self {
         Self {
-            database_health: DatabaseConnectionState::Unhealthy,
+            database_connection: DatabaseConnectionState::Unhealthy,
         }
     }
 }
@@ -73,7 +74,7 @@ pub async fn self_health(State(state): State<AppState>) -> MaedicHealth {
     }
 }
 
-async fn get_db_status(client: DbClient) -> Result<DatabaseConnectionState, HealthError> {
+async fn get_db_status(client: DbClient) -> Result<DatabaseConnectionState, ApplicationError> {
     match client
         .lock()
         .await
@@ -92,9 +93,20 @@ async fn get_db_status(client: DbClient) -> Result<DatabaseConnectionState, Heal
 
 impl IntoResponse for MaedicHealth {
     fn into_response(self) -> axum::response::Response {
-        match self.database_health {
-            DatabaseConnectionState::Healthy => StatusCode::OK.into_response(),
-            DatabaseConnectionState::Unhealthy => StatusCode::SERVICE_UNAVAILABLE.into_response(),
+        match self.database_connection {
+            DatabaseConnectionState::Healthy => (StatusCode::OK, self.to_string()).into_response(),
+            DatabaseConnectionState::Unhealthy => {
+                (StatusCode::SERVICE_UNAVAILABLE, self.to_string()).into_response()
+            }
+        }
+    }
+}
+
+impl Display for MaedicHealth {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.database_connection {
+            DatabaseConnectionState::Healthy => write!(f, "database_connection: healthy"),
+            DatabaseConnectionState::Unhealthy => write!(f, "database_connection: unhealthy"),
         }
     }
 }

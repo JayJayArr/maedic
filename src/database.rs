@@ -93,10 +93,8 @@ async fn get_db_status(client: DbClient) -> Result<DatabaseConnectionState, Heal
 impl IntoResponse for MaedicHealth {
     fn into_response(self) -> axum::response::Response {
         match self.database_health {
-            DatabaseConnectionState::Healthy => (StatusCode::OK, self).into_response(),
-            DatabaseConnectionState::Unhealthy => {
-                (StatusCode::SERVICE_UNAVAILABLE, self).into_response()
-            }
+            DatabaseConnectionState::Healthy => StatusCode::OK.into_response(),
+            DatabaseConnectionState::Unhealthy => StatusCode::SERVICE_UNAVAILABLE.into_response(),
         }
     }
 }

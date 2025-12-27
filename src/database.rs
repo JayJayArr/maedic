@@ -16,12 +16,15 @@ enum DatabaseConnectionState {
     Unhealthy,
 }
 
+/// The Health of Maedic itself
+/// Checks for a healthy Database connection
 #[derive(Clone, Debug, Serialize)]
-pub struct SelfHealth {
+pub struct MaedicHealth {
     database_health: DatabaseConnectionState,
 }
 
-impl SelfHealth {
+/// Default values for MaedicHealth
+impl MaedicHealth {
     fn healthy() -> Self {
         Self {
             database_health: DatabaseConnectionState::Healthy,
@@ -59,14 +62,14 @@ pub async fn setup_database_client(
     Client::connect(config, tcp.compat_write()).await
 }
 
-pub async fn self_health(State(state): State<AppState>) -> SelfHealth {
+pub async fn self_health(State(state): State<AppState>) -> MaedicHealth {
     match get_db_status(state.db_client).await {
         //TODO: Reconnect the DB Client on failure
         Ok(state) => match state {
-            DatabaseConnectionState::Healthy => SelfHealth::healthy(),
-            DatabaseConnectionState::Unhealthy => SelfHealth::unhealthy(),
+            DatabaseConnectionState::Healthy => MaedicHealth::healthy(),
+            DatabaseConnectionState::Unhealthy => MaedicHealth::unhealthy(),
         },
-        Err(_) => SelfHealth::unhealthy(),
+        Err(_) => MaedicHealth::unhealthy(),
     }
 }
 
@@ -87,7 +90,7 @@ async fn get_db_status(client: DbClient) -> Result<DatabaseConnectionState, Heal
     }
 }
 
-impl IntoResponse for SelfHealth {
+impl IntoResponse for MaedicHealth {
     fn into_response(self) -> axum::response::Response {
         match self.database_health {
             DatabaseConnectionState::Healthy => (StatusCode::OK, self).into_response(),

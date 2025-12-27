@@ -8,8 +8,15 @@ use serde::Serialize;
 use sysinfo::Process;
 use tracing::error;
 
+/// Health components of the connected PW instance
+///
+/// Featuring checks for:
+/// - The HIQUEUE (a builtin task queue)
+/// - Spool Files (unfinished downloads to the hardware)
+/// - Service_State (the status of the PW Windows Service)
+/// - Checks for CPU and RAM usage
 #[derive(Serialize, Debug)]
-pub struct Health {
+pub struct PWHealth {
     pub hi_queue_size: Option<i32>,
     pub unhealthy_spool_files: Option<Vec<SpoolFileCount>>,
     pub service_state: Option<ServiceState>,
@@ -19,7 +26,7 @@ pub struct Health {
 
 pub async fn check_health(
     State(state): State<AppState>,
-) -> Result<(StatusCode, Json<Health>), HealthError> {
+) -> Result<(StatusCode, Json<PWHealth>), HealthError> {
     let limits = state.config.limits;
     // HIQUEUE
     let hi_queue_size = if limits.hi_queue_count == 0 {
@@ -51,7 +58,7 @@ pub async fn check_health(
         Some(get_ram_load(&state.sys).await)
     };
 
-    let health = Health {
+    let health = PWHealth {
         unhealthy_spool_files,
         hi_queue_size,
         service_state,
@@ -66,7 +73,7 @@ pub async fn check_health(
     }
 }
 
-fn health_is_good(health: &Health, limits: &LimitSettings) -> bool {
+fn health_is_good(health: &PWHealth, limits: &LimitSettings) -> bool {
     // HI_QUEUE
     if let Some(hi_queue_size) = health.hi_queue_size
         && hi_queue_size > limits.hi_queue_count
@@ -182,7 +189,7 @@ pub async fn get_config_handler(
 mod tests {
     use super::*;
     use rstest::rstest;
-    impl Default for Health {
+    impl Default for PWHealth {
         fn default() -> Self {
             Self {
                 hi_queue_size: Some(0),
@@ -197,7 +204,7 @@ mod tests {
     #[test]
     fn is_good_with_perfect_health() {
         assert!(health_is_good(
-            &Health::default(),
+            &PWHealth::default(),
             &LimitSettings::default()
         ));
     }
@@ -205,7 +212,7 @@ mod tests {
     #[test]
     fn should_error_on_service_down() {
         assert!(!health_is_good(
-            &Health {
+            &PWHealth {
                 service_state: Some(ServiceState::Down),
                 ..Default::default()
             },
@@ -216,7 +223,7 @@ mod tests {
     #[test]
     fn should_error_on_big_hi_queue() {
         assert!(!health_is_good(
-            &Health {
+            &PWHealth {
                 hi_queue_size: Some(1001),
                 ..Default::default()
             },
@@ -227,7 +234,7 @@ mod tests {
     #[test]
     fn should_error_on_unhealthy_spool_files() {
         assert!(!health_is_good(
-            &Health {
+            &PWHealth {
                 unhealthy_spool_files: vec![SpoolFileCount {
                     spool_file_count: 11,
                     description: "yeet".to_string(),
@@ -243,7 +250,7 @@ mod tests {
     #[test]
     fn should_error_on_high_cpu_usage() {
         assert!(!health_is_good(
-            &Health {
+            &PWHealth {
                 used_memory_percentage: Some(81.0),
                 ..Default::default()
             },
@@ -254,7 +261,7 @@ mod tests {
     #[test]
     fn should_error_on_high_ram_usage() {
         assert!(!health_is_good(
-            &Health {
+            &PWHealth {
                 global_cpu_usage_percentage: Some(81.0),
                 ..Default::default()
             },
@@ -263,12 +270,12 @@ mod tests {
     }
 
     #[rstest]
-    #[case(Health {unhealthy_spool_files: None, ..Default::default()})]
-    #[case(Health {hi_queue_size: None, ..Default::default()})]
-    #[case(Health {service_state: None, ..Default::default()})]
-    #[case(Health {global_cpu_usage_percentage: None, ..Default::default()})]
-    #[case(Health {used_memory_percentage: None, ..Default::default()})]
-    fn ignoring_any_health_checks_yields_healthy_results(#[case] health: Health) {
+    #[case(PWHealth {unhealthy_spool_files: None, ..Default::default()})]
+    #[case(PWHealth {hi_queue_size: None, ..Default::default()})]
+    #[case(PWHealth {service_state: None, ..Default::default()})]
+    #[case(PWHealth {global_cpu_usage_percentage: None, ..Default::default()})]
+    #[case(PWHealth {used_memory_percentage: None, ..Default::default()})]
+    fn ignoring_any_health_checks_yields_healthy_results(#[case] health: PWHealth) {
         assert!(health_is_good(&health, &LimitSettings::default()));
     }
 }

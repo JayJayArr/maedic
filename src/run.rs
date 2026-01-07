@@ -14,9 +14,9 @@ pub async fn run(
     configuration: Settings,
 ) -> anyhow::Result<()> {
     let app = Router::new()
-        .route("/health", get(check_health))
-        .route("/config", get(get_config_handler))
-        .route("/self", get(self_health))
+        .route("/v1/health", get(check_health))
+        .route("/v1/config", get(get_config_handler))
+        .route("/v1/self", get(self_health))
         .with_state(state);
     info!(
         "Starting maedic on port: {}",

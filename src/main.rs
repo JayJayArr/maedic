@@ -1,6 +1,6 @@
 use maedic::{
     configuration::{AppState, get_configuration},
-    database::setup_database_client,
+    database::setup_database_pool,
     run::run,
 };
 use std::{fs::OpenOptions, sync::Arc};
@@ -49,9 +49,9 @@ async fn main() -> anyhow::Result<()> {
     .await
     .expect("Could not bind to port");
 
-    let client = setup_database_client(configuration.database.clone()).await?;
+    let pool = setup_database_pool(configuration.database.clone()).await?;
     let state = AppState {
-        db_client: Arc::new(Mutex::new(client)),
+        pool: pool,
         config: configuration.clone(),
         sys: Arc::new(Mutex::new(System::new_all())),
     };

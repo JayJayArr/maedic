@@ -1,12 +1,12 @@
+use bb8::Pool;
+use bb8_tiberius::ConnectionManager;
 use config::Config;
 use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use serde_aux::field_attributes::deserialize_number_from_string;
 use std::sync::Arc;
 use sysinfo::System;
-use tiberius::Client;
 use tokio::sync::Mutex;
-use tokio_util::compat::Compat;
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine current directory.");
@@ -92,12 +92,12 @@ impl Default for ApplicationSettings {
     }
 }
 
-pub type DbClient = Arc<Mutex<Client<Compat<tokio::net::TcpStream>>>>;
+pub type DBConnectionPool = Pool<ConnectionManager>;
 pub type SystemState = Arc<Mutex<System>>;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub db_client: DbClient,
+    pub pool: DBConnectionPool,
     pub config: Settings,
     pub sys: SystemState,
 }

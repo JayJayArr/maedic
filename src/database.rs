@@ -1,13 +1,14 @@
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use bb8::Pool;
+use bb8_tiberius::ConnectionManager;
 use secrecy::ExposeSecret;
 use serde::Serialize;
 use std::fmt::Display;
-use tiberius::{AuthMethod, Client, Config};
+use tiberius::{AuthMethod, Config};
 use tokio::net::TcpStream;
-use tokio_util::compat::{Compat, TokioAsyncWriteCompatExt};
 
 use crate::{
-    configuration::{AppState, DatabaseSettings, DbClient},
+    configuration::{AppState, DBConnectionPool, DatabaseSettings},
     error::ApplicationError,
 };
 
@@ -42,9 +43,9 @@ impl MaedicHealth {
     }
 }
 
-pub async fn setup_database_client(
+pub async fn setup_database_pool(
     db_config: DatabaseSettings,
-) -> Result<Client<Compat<tokio::net::TcpStream>>, tiberius::error::Error> {
+) -> Result<Pool<ConnectionManager>, tiberius::error::Error> {
     let mut config = Config::new();
 
     config.host(db_config.host);
@@ -62,13 +63,15 @@ pub async fn setup_database_client(
 
     let tcp = TcpStream::connect(config.get_addr()).await?;
     tcp.set_nodelay(true)?;
+    let mgr = bb8_tiberius::ConnectionManager::build(config).unwrap();
+    let pool = bb8::Pool::builder().max_size(2).build(mgr).await.unwrap();
 
-    Client::connect(config, tcp.compat_write()).await
+    Ok(pool)
 }
 
 pub async fn self_health(State(state): State<AppState>) -> Json<MaedicHealth> {
-    match get_db_status(state.db_client).await {
-        //TODO: Reconnect the DB Client on failure
+    println!("{:?}", state.pool.state());
+    match get_db_status(state.pool).await {
         Ok(state) => match state {
             DatabaseConnectionState::Healthy => Json(MaedicHealth::healthy()),
             DatabaseConnectionState::Unhealthy => Json(MaedicHealth::unhealthy()),
@@ -77,10 +80,11 @@ pub async fn self_health(State(state): State<AppState>) -> Json<MaedicHealth> {
     }
 }
 
-async fn get_db_status(client: DbClient) -> Result<DatabaseConnectionState, ApplicationError> {
+async fn get_db_status(
+    pool: DBConnectionPool,
+) -> Result<DatabaseConnectionState, ApplicationError> {
+    let mut client = pool.get().await?;
     match client
-        .lock()
-        .await
         .simple_query("SELECT 1 as connection_state")
         .await?
         .into_row()

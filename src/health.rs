@@ -1,5 +1,5 @@
 use crate::{
-    configuration::{AppState, DbClient, LimitSettings, SystemState},
+    configuration::{AppState, DBConnectionPool, LimitSettings, SystemState},
     error::ApplicationError,
     indicators::{ServiceState, SpoolFileCount},
 };
@@ -32,13 +32,13 @@ pub async fn check_health(
     let hi_queue_size = if limits.hi_queue_count == 0 {
         None
     } else {
-        Some(get_hiqueue_count(state.db_client.clone()).await?)
+        Some(get_hiqueue_count(state.pool.clone()).await?)
     };
     //Spool Files
     let unhealthy_spool_files = if limits.spool_file_count == 0 {
         None
     } else {
-        Some(get_unhealthy_spoolfiles(state.db_client, limits.spool_file_count).await?)
+        Some(get_unhealthy_spoolfiles(state.pool, limits.spool_file_count).await?)
     };
     let service_state = if !limits.check_local_service {
         None
@@ -139,8 +139,8 @@ async fn check_local_service(sys: &SystemState, service_name: &String) -> Servic
     }
 }
 
-async fn get_hiqueue_count(client: DbClient) -> Result<i32, ApplicationError> {
-    let mut client = client.lock().await;
+async fn get_hiqueue_count(pool: DBConnectionPool) -> Result<i32, ApplicationError> {
+    let mut client = pool.get().await?;
     let size = client
         .simple_query("SELECT COUNT(*) as HIQUEUECOUNT FROM HI_QUEUE")
         .await?
@@ -155,10 +155,10 @@ async fn get_hiqueue_count(client: DbClient) -> Result<i32, ApplicationError> {
 }
 
 async fn get_unhealthy_spoolfiles(
-    client: DbClient,
+    pool: DBConnectionPool,
     limit_per_channel: i32,
 ) -> Result<Vec<SpoolFileCount>, ApplicationError> {
-    let mut client = client.lock().await;
+    let mut client = pool.get().await?;
     let queryresult = client
         .query("select DESCRP as description, SPOOl_FILE_COUNT as spool_file_count, SPOOL_DIR as directory from CHANNEL where Installed = 'Y' and SPOOl_FILE_COUNT > @P1", &[&limit_per_channel])
         .await?.into_results().await?;

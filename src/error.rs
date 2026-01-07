@@ -1,4 +1,5 @@
 use axum::{http::StatusCode, response::IntoResponse};
+use bb8::RunError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum ApplicationError {
@@ -7,6 +8,9 @@ pub enum ApplicationError {
 
     #[error(transparent)]
     Database(#[from] tiberius::error::Error),
+
+    #[error(transparent)]
+    DatabaseConnection(#[from] RunError<bb8_tiberius::Error>),
 
     #[error("{0}")]
     Conversion(String),
@@ -20,6 +24,10 @@ impl IntoResponse for ApplicationError {
                 (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
             }
             Self::Database(err) => {
+                tracing::error!("{:?}", err);
+                (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+            }
+            Self::DatabaseConnection(err) => {
                 tracing::error!("{:?}", err);
                 (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
             }

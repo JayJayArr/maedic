@@ -70,7 +70,6 @@ pub async fn setup_database_pool(
 }
 
 pub async fn self_health(State(state): State<AppState>) -> Json<MaedicHealth> {
-    println!("{:?}", state.pool.state());
     match get_db_status(state.pool).await {
         Ok(state) => match state {
             DatabaseConnectionState::Healthy => Json(MaedicHealth::healthy()),

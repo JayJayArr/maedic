@@ -28,7 +28,7 @@ jobs:
       - name: Compile
         run: cargo check --locked
       - name: Test
-        run: cargo nextest run
+        run: make test
 
   lint:
     runs-on: ubuntu-latest
@@ -39,6 +39,4 @@ jobs:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
       - name: Run cargo clippy (deny warnings)
-        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
-      - name: Run cargo fmt (check if all code is rustfmt-ed)
-        run: cargo fmt --all --check
+        run: make lint

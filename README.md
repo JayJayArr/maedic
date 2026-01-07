@@ -11,7 +11,11 @@ Currently featuring the following PW specific checks:
 - PW main Service monitoring
 - Sysinfo checks incl. CPU/RAM
 
-All Health Checks are available via a configurable REST endpoint
+The following endpoints are available:
+
+- `/v1/health` for the health of PW
+- `/v1/self` for checking the health of maedic itself, also checks the database connection
+- `/v1/config` to check the configured limits and options
 
 There are multiple options to install:
 
@@ -37,7 +41,8 @@ docker compose up -d
 
 For Windows an installation using [pm2](https://github.com/jessety/pm2-installer) is recommended.
 
-For a complete Installation with pm2 the following Files are required(please check the [releases page](https://github.com/JayJayArr/maedic/releases/latest)):
+For a complete Installation with pm2 the following Files are required
+(please check the [releases page](https://github.com/JayJayArr/maedic/releases/latest)):
 
 - the compiled binary
 - base.yaml as a config file

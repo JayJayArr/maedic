@@ -19,7 +19,8 @@ pub async fn run(
         .route("/v1/self", get(self_health))
         .with_state(state);
     info!(
-        "Starting maedic on port: {}",
+        "Starting maedic version {} on port: {}",
+        env!("CARGO_PKG_VERSION"),
         configuration.application.port
     );
     axum::serve(listener, app).await?;

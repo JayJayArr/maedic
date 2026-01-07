@@ -36,7 +36,11 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::subscriber::set_global_default(subscriber).unwrap();
 
-    info!("Starting maedic with config: {:?}", configuration);
+    info!(
+        "Starting maedic version {} with config: {:?}",
+        env!("CARGO_PKG_VERSION"),
+        configuration
+    );
 
     let listener = tokio::net::TcpListener::bind(format!(
         "{}:{}",

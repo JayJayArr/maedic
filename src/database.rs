@@ -1,4 +1,4 @@
-use axum::{extract::State, http::StatusCode, response::IntoResponse};
+use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use secrecy::ExposeSecret;
 use serde::Serialize;
 use std::fmt::Display;
@@ -22,6 +22,7 @@ enum DatabaseConnectionState {
 #[derive(Clone, Debug, Serialize)]
 pub struct MaedicHealth {
     database_connection: DatabaseConnectionState,
+    version_number: String,
 }
 
 /// Default values for MaedicHealth
@@ -29,12 +30,14 @@ impl MaedicHealth {
     fn healthy() -> Self {
         Self {
             database_connection: DatabaseConnectionState::Healthy,
+            version_number: env!("CARGO_PKG_VERSION").to_string(),
         }
     }
 
     fn unhealthy() -> Self {
         Self {
             database_connection: DatabaseConnectionState::Unhealthy,
+            version_number: env!("CARGO_PKG_VERSION").to_string(),
         }
     }
 }
@@ -63,14 +66,14 @@ pub async fn setup_database_client(
     Client::connect(config, tcp.compat_write()).await
 }
 
-pub async fn self_health(State(state): State<AppState>) -> MaedicHealth {
+pub async fn self_health(State(state): State<AppState>) -> Json<MaedicHealth> {
     match get_db_status(state.db_client).await {
         //TODO: Reconnect the DB Client on failure
         Ok(state) => match state {
-            DatabaseConnectionState::Healthy => MaedicHealth::healthy(),
-            DatabaseConnectionState::Unhealthy => MaedicHealth::unhealthy(),
+            DatabaseConnectionState::Healthy => Json(MaedicHealth::healthy()),
+            DatabaseConnectionState::Unhealthy => Json(MaedicHealth::unhealthy()),
         },
-        Err(_) => MaedicHealth::unhealthy(),
+        Err(_) => Json(MaedicHealth::unhealthy()),
     }
 }
 

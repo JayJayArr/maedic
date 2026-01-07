@@ -51,7 +51,7 @@ async fn main() -> anyhow::Result<()> {
 
     let pool = setup_database_pool(configuration.database.clone()).await?;
     let state = AppState {
-        pool: pool,
+        pool,
         config: configuration.clone(),
         sys: Arc::new(Mutex::new(System::new_all())),
     };

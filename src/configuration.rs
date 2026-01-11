@@ -95,7 +95,7 @@ impl Default for ApplicationSettings {
 pub type DBConnectionPool = Pool<ConnectionManager>;
 pub type SystemState = Arc<Mutex<System>>;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct AppState {
     pub pool: DBConnectionPool,
     pub config: Settings,

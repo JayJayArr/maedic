@@ -17,6 +17,11 @@ axum = {version = "0.8.8", features = ["tokio", "macros", "json"]}
 bb8 = "0.9.1"
 bb8-tiberius = "0.16.0"
 config = {version = "0.15.19", features = ["yaml"]}
+opentelemetry = "0.31.0"
+opentelemetry-appender-tracing = "0.31.1"
+opentelemetry-otlp = {version = "0.31.0", features= ["grpc-tonic", "tokio", "http-proto", "http-json"]}
+opentelemetry-stdout = {version = "0.31.0", features= ["logs"]}
+opentelemetry_sdk = {version = "0.31.0", features= ["logs"]}
 rstest = "0.26.1"
 secrecy = {version = "0.10.3", features = ["serde"]}
 serde = "1.0.228"
@@ -27,5 +32,6 @@ tiberius = {version = "0.12.3", features = ["rustls"], default-features = false}
 tokio = {version = "1.49.0", features = ["rt-multi-thread", "macros"]}
 tokio-util = { version = "0.7.18", features = ["compat"]}
 tower_governor = "0.8.0"
-tracing = "0.1.44"
-tracing-subscriber = {version = "0.3.22", features = ["json", "std"]}
+tracing = {version="0.1.44", features = ["std", "attributes"]}
+tracing-opentelemetry = "0.32.0"
+tracing-subscriber = {version = "0.3.22", features = ["json", "std", "env-filter", "registry"]}

@@ -24,7 +24,7 @@ pub struct PWHealth {
     pub used_memory_percentage: Option<f32>,
 }
 
-#[tracing::instrument(name = "check PW health")]
+#[tracing::instrument(name = "check PW health", skip_all)]
 pub async fn check_health(
     State(state): State<AppState>,
 ) -> Result<(StatusCode, Json<PWHealth>), ApplicationError> {
@@ -112,7 +112,7 @@ fn health_is_good(health: &PWHealth, limits: &LimitSettings) -> bool {
     true
 }
 
-#[tracing::instrument(name = "Check CPU load")]
+#[tracing::instrument(name = "Check CPU load", skip_all)]
 async fn get_cpu_load(sys: &SystemState) -> f32 {
     let mut system = sys.lock().await;
     system.refresh_all();
@@ -120,7 +120,7 @@ async fn get_cpu_load(sys: &SystemState) -> f32 {
 }
 
 // check the local RAM usage
-#[tracing::instrument(name = "Check RAM load")]
+#[tracing::instrument(name = "Check RAM load", skip_all)]
 async fn get_ram_load(sys: &SystemState) -> f32 {
     let mut system = sys.lock().await;
     system.refresh_all();
@@ -128,7 +128,7 @@ async fn get_ram_load(sys: &SystemState) -> f32 {
     ((system.used_memory() as f32 / system.total_memory() as f32) * 10000.0).ceil() / 100.0
 }
 
-#[tracing::instrument(name = "Check if local service is running")]
+#[tracing::instrument(name = "Check if local service is running", skip_all)]
 async fn check_local_service(sys: &SystemState, service_name: &String) -> ServiceState {
     let mut system = sys.lock().await;
     system.refresh_all();
@@ -142,7 +142,7 @@ async fn check_local_service(sys: &SystemState, service_name: &String) -> Servic
     }
 }
 
-#[tracing::instrument(name = "Check HI_QUEUE Table")]
+#[tracing::instrument(name = "Check HI_QUEUE Table", skip_all)]
 async fn get_hiqueue_count(pool: DBConnectionPool) -> Result<i32, ApplicationError> {
     let mut client = pool.get().await?;
     let size = client
@@ -158,7 +158,7 @@ async fn get_hiqueue_count(pool: DBConnectionPool) -> Result<i32, ApplicationErr
     Ok(size)
 }
 
-#[tracing::instrument(name = "Check unhealthy spoolfiles")]
+#[tracing::instrument(name = "Check unhealthy spoolfiles", skip_all)]
 async fn get_unhealthy_spoolfiles(
     pool: DBConnectionPool,
     limit_per_channel: i32,

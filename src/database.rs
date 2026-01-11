@@ -6,7 +6,6 @@ use serde::Serialize;
 use std::fmt::Display;
 use tiberius::{AuthMethod, Config};
 use tokio::net::TcpStream;
-use tracing::info;
 
 use crate::{
     configuration::{AppState, DBConnectionPool, DatabaseSettings},
@@ -70,9 +69,8 @@ pub async fn setup_database_pool(
     Ok(pool)
 }
 
-#[tracing::instrument(name = "self_health", skip(state))]
+#[tracing::instrument(name = "Check self health", skip(state))]
 pub async fn self_health(State(state): State<AppState>) -> Json<MaedicHealth> {
-    info!("Checking self health");
     match get_db_status(state.pool).await {
         Ok(state) => match state {
             DatabaseConnectionState::Healthy => Json(MaedicHealth::healthy()),
@@ -82,7 +80,7 @@ pub async fn self_health(State(state): State<AppState>) -> Json<MaedicHealth> {
     }
 }
 
-#[tracing::instrument(skip(pool))]
+#[tracing::instrument(name = "check database connection", skip(pool))]
 async fn get_db_status(
     pool: DBConnectionPool,
 ) -> Result<DatabaseConnectionState, ApplicationError> {

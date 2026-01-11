@@ -3,17 +3,14 @@ use maedic::{
     database::setup_database_pool,
     run::run,
 };
-use opentelemetry_appender_tracing::layer;
 use opentelemetry_otlp::Protocol;
 use opentelemetry_otlp::WithExportConfig;
-use opentelemetry_sdk::{Resource, logs::SdkLoggerProvider, trace::SdkTracerProvider};
+use opentelemetry_sdk::{Resource, trace::SdkTracerProvider};
 use std::sync::Arc;
 use sysinfo::System;
 use tokio::sync::Mutex;
-use tracing::{error, info, span};
-use tracing_subscriber::{
-    EnvFilter, Layer, Registry, layer::SubscriberExt, util::SubscriberInitExt,
-};
+use tracing::info;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use opentelemetry::trace::TracerProvider;
 
@@ -21,9 +18,6 @@ use opentelemetry::trace::TracerProvider;
 async fn main() -> anyhow::Result<()> {
     let configuration = get_configuration()?;
     let otlp_exporter = opentelemetry_otlp::SpanExporter::builder()
-        // .with_tonic()
-        // .with_protocol(Protocol::Grpc)
-        // .with_endpoint("http://localhost:4317/traces")
         .with_http()
         .with_protocol(Protocol::HttpJson)
         .with_endpoint("http://localhost:4318/v1/traces")

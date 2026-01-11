@@ -32,6 +32,8 @@ tiberius = {version = "0.12.3", features = ["rustls"], default-features = false}
 tokio = {version = "1.49.0", features = ["rt-multi-thread", "macros"]}
 tokio-util = { version = "0.7.18", features = ["compat"]}
 tower_governor = "0.8.0"
+tower-http = {version = "0.6.8", features= ["trace", "request-id"]}
 tracing = {version="0.1.44", features = ["std", "attributes"]}
 tracing-opentelemetry = "0.32.0"
-tracing-subscriber = {version = "0.3.22", features = ["json", "std", "env-filter", "registry"]}
+tracing-subscriber = {version = "0.3.22", features = ["json", "std", "env-filter", "registry", "fmt"]}
+uuid = {version = "1.19.0", features = ["v4"]}

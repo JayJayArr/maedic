@@ -4,3 +4,4 @@ pub mod error;
 pub mod health;
 pub mod indicators;
 pub mod run;
+pub mod telemetry;

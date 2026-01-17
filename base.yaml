@@ -4,7 +4,7 @@ application:
   # host: 127.0.0.1
   host: 0.0.0.0
   logfile_path: ./maedic.log
-  service_name: micserver.exe # The name of the ProWatch Service
+  service_name: MICSERVER.EXE # The name of the ProWatch Service
   expose_config: true
 database:
   # host: 172.17.0.1

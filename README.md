@@ -2,7 +2,7 @@
 
 ![Tests](https://img.shields.io/github/actions/workflow/status/JayJayArr/maedic/ci.yml)
 
-Service to monitor a PW-installation for its health.
+Service to monitor a PW-installation for its health. Latest tested version : `6.5.2`
 
 Currently featuring the following PW specific checks:
 
@@ -14,7 +14,7 @@ Currently featuring the following PW specific checks:
 The following endpoints are available:
 
 - `/v1/health` for the health of PW
-- `/v1/self` for checking the health of maedic itself, also checks the database connection
+- `/v1/self` for checking the health of `maedic` itself, also checks the database connection
 - `/v1/config` to check the configured limits and options
 
 There are multiple options to install:

@@ -26,5 +26,6 @@ thiserror = "2.0.17"
 tiberius = {version = "0.12.3", features = ["rustls"], default-features = false}
 tokio = {version = "1.49.0", features = ["rt-multi-thread", "macros"]}
 tokio-util = { version = "0.7.18", features = ["compat"]}
+tower_governor = "0.8.0"
 tracing = "0.1.44"
 tracing-subscriber = {version = "0.3.22", features = ["json", "std"]}

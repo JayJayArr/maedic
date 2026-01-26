@@ -22,7 +22,7 @@ secrecy = {version = "0.10.3", features = ["serde"]}
 serde = "1.0.228"
 serde-aux = "4.7.0"
 sysinfo = "0.37.2"
-thiserror = "2.0.17"
+thiserror = "2.0.18"
 tiberius = {version = "0.12.3", features = ["rustls"], default-features = false}
 tokio = {version = "1.49.0", features = ["rt-multi-thread", "macros"]}
 tokio-util = { version = "0.7.18", features = ["compat"]}

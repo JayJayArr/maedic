@@ -30,7 +30,7 @@ pub async fn run(
         .route("/v1/health", get(check_health))
         .route("/v1/config", get(get_config_handler))
         .route("/v1/self", get(self_health))
-        .layer(GovernorLayer::new(governor_conf));
+        .layer(GovernorLayer::new(governor_conf))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(|request: &Request<_>| {

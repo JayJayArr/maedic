@@ -46,7 +46,6 @@ pub async fn check_health(
     } else {
         Some(check_local_service(&state.sys, &state.config.application.service_name).await)
     };
-    // let system_health = get_system_health(&state.sys, &state.config).await;
     let global_cpu_usage_percentage = if limits.max_cpu_percentage == 0.0 {
         None
     } else {
@@ -74,6 +73,7 @@ pub async fn check_health(
     }
 }
 
+#[tracing::instrument(name = "Determine Health Status with gathered parameters", skip_all)]
 fn health_is_good(health: &PWHealth, limits: &LimitSettings) -> bool {
     // HI_QUEUE
     if let Some(hi_queue_size) = health.hi_queue_size
@@ -180,6 +180,7 @@ async fn get_unhealthy_spoolfiles(
     Ok(spool_file_counts)
 }
 
+#[tracing::instrument(name = "Getting exposed config", skip_all)]
 pub async fn get_config_handler(
     State(state): State<AppState>,
 ) -> Result<(StatusCode, Json<LimitSettings>), StatusCode> {

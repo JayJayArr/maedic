@@ -2,7 +2,7 @@ use maedic::{
     configuration::{AppState, get_configuration},
     database::setup_database_pool,
     run::run,
-    telemetry::init_tracing,
+    telemetry::initialize_tracing,
 };
 use std::sync::Arc;
 use sysinfo::System;
@@ -13,7 +13,7 @@ use tracing::info;
 async fn main() -> anyhow::Result<()> {
     let configuration = get_configuration()?;
 
-    init_tracing()?;
+    initialize_tracing()?;
 
     info!(
         "Starting maedic version {} with config: {:?}",

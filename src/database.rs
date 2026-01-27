@@ -43,6 +43,7 @@ impl MaedicHealth {
     }
 }
 
+#[tracing::instrument(name = "Setup Database connection pool", skip_all)]
 pub async fn setup_database_pool(
     db_config: DatabaseSettings,
 ) -> Result<Pool<ConnectionManager>, tiberius::error::Error> {

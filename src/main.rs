@@ -37,6 +37,8 @@ async fn main() -> anyhow::Result<()> {
 
     run(listener, state, configuration)
         .await
+        .expect("Failed to build application")
+        .await
         .expect("Failed to start application");
 
     Ok(())

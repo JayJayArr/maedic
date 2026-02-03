@@ -6,11 +6,12 @@ async fn health_check_works() {
     let client = reqwest::Client::new();
 
     let response = client
-        .get(format!("{}/health_check", app.address))
+        .get(format!("{}/v1/self", app.address))
         .send()
         .await
         .expect("Failed to execute request");
+    // dbg!(&response);
 
     assert!(response.status().is_success());
-    assert_eq!(response.content_length(), Some(0));
+    assert_eq!(response.content_length(), Some(58));
 }

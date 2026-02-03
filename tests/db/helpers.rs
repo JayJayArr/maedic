@@ -92,13 +92,11 @@ pub async fn create_database(db_config: &DatabaseSettings) {
             .await
             .unwrap();
 
-        // let mut create = Query::new("CREATE DATABASE @P1");
-        // create.bind(db_config.database_name.clone());
-        // create.execute(&mut client).await.unwrap();
-        client
-            .execute("CREATE DATABASE @P1;", &[&db_config.database_name])
-            .await
-            .unwrap();
+        let query = format!(
+            "CREATE DATABASE \"{}\"",
+            db_config.database_name.to_string()
+        );
+        client.execute(query, &[]).await.unwrap();
         client.close().await.unwrap();
     }
     config.database(db_config.database_name.clone());

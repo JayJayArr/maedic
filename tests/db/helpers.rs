@@ -1,17 +1,13 @@
-use std::sync::Arc;
-
 use maedic::{
-    configuration::{DBConnectionPool, DatabaseSettings, Settings, SystemState, get_configuration},
+    configuration::{DBConnectionPool, DatabaseSettings, Settings, get_configuration},
     database::setup_database_pool,
     run::Application,
     telemetry::initialize_tracing,
 };
 use once_cell::sync::Lazy;
 use secrecy::ExposeSecret;
-use sysinfo::System;
 use tiberius::{AuthMethod, Client, Config};
 use tokio::net::TcpStream;
-use tokio::sync::Mutex;
 use tokio_util::compat::{Compat, TokioAsyncWriteCompatExt};
 use uuid::Uuid;
 
@@ -21,7 +17,6 @@ pub struct TestApp {
     pub port: u16,
     pub pool: DBConnectionPool,
     pub config: Settings,
-    pub sys: SystemState,
 }
 
 static TRACING: Lazy<()> = Lazy::new(|| {
@@ -56,7 +51,6 @@ pub async fn spawn_app() -> TestApp {
         port: application_port,
         address,
         config: configuration,
-        sys: Arc::new(Mutex::new(System::new_all())),
     }
 }
 

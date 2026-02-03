@@ -2,7 +2,7 @@ use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use bb8::Pool;
 use bb8_tiberius::ConnectionManager;
 use secrecy::ExposeSecret;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use tiberius::{AuthMethod, Config};
 use tokio::net::TcpStream;
@@ -12,7 +12,7 @@ use crate::{
     error::ApplicationError,
 };
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 enum DatabaseConnectionState {
     Healthy,
     Unhealthy,
@@ -20,7 +20,7 @@ enum DatabaseConnectionState {
 
 /// The Health of Maedic itself
 /// Checks for a healthy Database connection
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MaedicHealth {
     database_connection: DatabaseConnectionState,
     version_number: String,

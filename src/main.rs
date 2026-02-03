@@ -11,7 +11,7 @@ use tracing::info;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let configuration = get_configuration()?;
+    let configuration = get_configuration("base".to_string())?;
 
     initialize_tracing()?;
 

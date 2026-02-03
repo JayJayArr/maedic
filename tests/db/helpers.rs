@@ -27,7 +27,7 @@ pub async fn spawn_app() -> TestApp {
     Lazy::force(&TRACING);
 
     let configuration = {
-        let mut c = get_configuration().expect("Failed to read configuration");
+        let mut c = get_configuration("test".to_string()).expect("Failed to read configuration");
         c.database.database_name = Uuid::new_v4().to_string();
         c.application.port = 0;
         c

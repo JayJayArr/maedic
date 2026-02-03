@@ -3,7 +3,7 @@ use maedic::database::MaedicHealth;
 use crate::helpers::spawn_app;
 
 #[tokio::test]
-async fn health_check_works() {
+async fn test_self_health_works() {
     let app = spawn_app().await;
     let client = reqwest::Client::new();
 
@@ -19,12 +19,26 @@ async fn health_check_works() {
 }
 
 #[tokio::test]
-async fn config_endpoint_works() {
+async fn test_config_endpoint_works() {
     let app = spawn_app().await;
     let client = reqwest::Client::new();
 
     let response = client
         .get(format!("{}/v1/config", app.address))
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert!(response.status().is_success());
+}
+
+#[tokio::test]
+async fn test_pw_health_endpoint_works_with_db() {
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+
+    let response = client
+        .get(format!("{}/v1/health", app.address))
         .send()
         .await
         .expect("Failed to execute request");

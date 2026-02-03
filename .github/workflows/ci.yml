@@ -20,6 +20,14 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: Charlie 13
+        ports:
+          - 1433:1433
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable

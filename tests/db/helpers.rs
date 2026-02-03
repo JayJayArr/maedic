@@ -15,6 +15,7 @@ use tokio::sync::Mutex;
 use tokio_util::compat::{Compat, TokioAsyncWriteCompatExt};
 use uuid::Uuid;
 
+#[allow(dead_code)]
 pub struct TestApp {
     pub address: String,
     pub port: u16,
@@ -50,15 +51,13 @@ pub async fn spawn_app() -> TestApp {
     let address = format!("http://127.0.0.1:{}", application.port());
     let _handle = tokio::spawn(application.run_until_stopped());
 
-    let test_app = TestApp {
+    TestApp {
         pool,
         port: application_port,
         address,
         config: configuration,
         sys: Arc::new(Mutex::new(System::new_all())),
-    };
-
-    test_app
+    }
 }
 
 mod embedded {
@@ -92,10 +91,7 @@ pub async fn create_database(db_config: &DatabaseSettings) {
             .await
             .unwrap();
 
-        let query = format!(
-            "CREATE DATABASE \"{}\"",
-            db_config.database_name.to_string()
-        );
+        let query = format!("CREATE DATABASE \"{}\"", db_config.database_name);
         client.execute(query, &[]).await.unwrap();
         client.close().await.unwrap();
     }

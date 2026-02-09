@@ -1,6 +1,5 @@
-use maedic::database::MaedicHealth;
-
 use crate::helpers::spawn_app;
+use maedic::database::MaedicHealth;
 
 #[tokio::test]
 async fn test_self_health_works() {

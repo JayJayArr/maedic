@@ -12,7 +12,7 @@ path= "src/main.rs"
 name = "maedic"
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow = "1.0.102"
 axum = {version = "0.8.8", features = ["tokio", "macros", "json"]}
 bb8 = "0.9.1"
 bb8-tiberius = "0.16.0"

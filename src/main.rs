@@ -13,7 +13,7 @@ use tracing::info;
 async fn main() -> anyhow::Result<()> {
     let configuration = get_configuration("base".to_string())?;
 
-    initialize_tracing()?;
+    initialize_tracing(configuration.application.log_level.clone())?;
 
     info!(
         "Starting maedic version {} with config: {:?}",

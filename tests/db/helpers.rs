@@ -20,7 +20,7 @@ pub struct TestApp {
 }
 
 static TRACING: Lazy<()> = Lazy::new(|| {
-    initialize_tracing().unwrap();
+    initialize_tracing("debug".to_string()).unwrap();
 });
 
 pub async fn spawn_app() -> TestApp {

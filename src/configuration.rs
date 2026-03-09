@@ -31,6 +31,7 @@ pub struct ApplicationSettings {
     pub port: u16,
     pub host: String,
     pub logfile_path: String,
+    pub log_level: String,
     pub service_name: String,
     pub expose_config: bool,
 }
@@ -86,6 +87,7 @@ impl Default for ApplicationSettings {
             port: 3000,
             host: "0.0.0.0".into(),
             logfile_path: "./maedic.log".into(),
+            log_level: "info".to_string(),
             service_name: "micserver.exe".into(),
             expose_config: false,
         }

@@ -4,6 +4,7 @@ application:
   # host: 127.0.0.1
   host: 0.0.0.0
   logfile_path: ./maedic.log
+  log_level: info # how detailed the log shall be, can be: debug, info, warn, error
   service_name: MICSERVER.EXE # The name of the ProWatch Service
   expose_config: true
 database:

@@ -1,10 +1,10 @@
 use tracing_subscriber::{EnvFilter, Layer, layer::SubscriberExt, util::SubscriberInitExt};
 
-pub fn initialize_tracing() -> anyhow::Result<()> {
+pub fn initialize_tracing(env_filter: String) -> anyhow::Result<()> {
     //Filter unnecessary info
-    let filter = EnvFilter::new("info")
-        .add_directive("reqwest=info".parse().unwrap())
-        .add_directive("tiberius=info".parse().unwrap());
+    let filter = EnvFilter::new(env_filter.clone())
+        .add_directive(format!("reqwest={}", env_filter.clone()).parse().unwrap())
+        .add_directive(format!("tiberius={}", env_filter).parse().unwrap());
 
     //Create a format layer with the appropriate filter
     let fmt_layer = tracing_subscriber::fmt::layer().with_filter(filter);

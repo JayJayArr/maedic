@@ -27,7 +27,6 @@ RUN apt-get update -y \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder  /app/target/release/maedic maedic
-COPY base.yaml base.yaml
 EXPOSE 3000
 
 ENTRYPOINT [ "./maedic" ]

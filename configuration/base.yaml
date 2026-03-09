@@ -8,7 +8,7 @@ application:
   service_name: MICSERVER.EXE # The name of the ProWatch Service
   expose_config: true
 database:
-  # host: 172.17.0.1
+  # host: 172.17.0.2 # this example might be helpful when using docker
   host: localhost
   port: 1433
   username: sa

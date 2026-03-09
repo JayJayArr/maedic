@@ -3,7 +3,7 @@ services:
     container_name: maedic
     restart: always
     volumes:
-      - ./base.yaml:/app/base.yaml
+      - ./configuration/base.yaml:/app/configuration/base.yaml
     build:
       context: .
     ports:

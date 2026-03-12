@@ -1,7 +1,7 @@
 use std::{net::SocketAddr, sync::Arc};
 
 use crate::{
-    configuration::{AppState, Settings},
+    configuration::{DBConnectionPool, Settings, SystemState},
     database::{self_health, setup_database_pool},
     health::{check_health, get_config_handler},
 };
@@ -24,6 +24,13 @@ pub struct Application {
         IntoMakeServiceWithConnectInfo<Router, SocketAddr>,
         AddExtension<Router, ConnectInfo<SocketAddr>>,
     >,
+}
+
+#[derive(Clone, Debug)]
+pub struct AppState {
+    pub pool: DBConnectionPool,
+    pub config: Settings,
+    pub sys: SystemState,
 }
 
 pub async fn run(

@@ -8,8 +8,9 @@ use tiberius::{AuthMethod, Config};
 use tokio::net::TcpStream;
 
 use crate::{
-    configuration::{AppState, DBConnectionPool, DatabaseSettings},
+    configuration::{DBConnectionPool, DatabaseSettings},
     error::ApplicationError,
+    run::AppState,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

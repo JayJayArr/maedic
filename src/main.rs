@@ -1,7 +1,7 @@
 use maedic::{
-    configuration::{AppState, get_configuration},
+    configuration::get_configuration,
     database::setup_database_pool,
-    run::run,
+    run::{AppState, run},
     telemetry::initialize_tracing,
 };
 use std::sync::Arc;

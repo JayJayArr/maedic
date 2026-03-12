@@ -81,6 +81,7 @@ impl Default for LimitSettings {
         }
     }
 }
+
 impl Default for ApplicationSettings {
     fn default() -> Self {
         Self {
@@ -96,10 +97,3 @@ impl Default for ApplicationSettings {
 
 pub type DBConnectionPool = Pool<ConnectionManager>;
 pub type SystemState = Arc<Mutex<System>>;
-
-#[derive(Clone, Debug)]
-pub struct AppState {
-    pub pool: DBConnectionPool,
-    pub config: Settings,
-    pub sys: SystemState,
-}

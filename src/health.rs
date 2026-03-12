@@ -1,28 +1,12 @@
 use crate::{
-    configuration::{AppState, DBConnectionPool, LimitSettings, SystemState},
+    configuration::{DBConnectionPool, LimitSettings, SystemState},
     error::ApplicationError,
-    indicators::{ServiceState, SpoolFileCount},
+    indicators::{PWHealth, ServiceState, SpoolFileCount},
+    run::AppState,
 };
 use axum::{Json, extract::State, http::StatusCode};
-use serde::Serialize;
 use sysinfo::Process;
 use tracing::error;
-
-/// Health components of the connected PW instance
-///
-/// Featuring checks for:
-/// - The HIQUEUE (a builtin task queue)
-/// - Spool Files (unfinished downloads to the hardware)
-/// - Service_State (the status of the PW Windows Service)
-/// - Checks for CPU and RAM usage
-#[derive(Serialize, Debug)]
-pub struct PWHealth {
-    pub hi_queue_size: Option<i32>,
-    pub unhealthy_spool_files: Option<Vec<SpoolFileCount>>,
-    pub service_state: Option<ServiceState>,
-    pub global_cpu_usage_percentage: Option<f32>,
-    pub used_memory_percentage: Option<f32>,
-}
 
 #[tracing::instrument(name = "check PW health", skip_all)]
 pub async fn check_health(

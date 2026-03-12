@@ -8,6 +8,10 @@ test: ## Run all tests
 	cargo nextest run
 	cargo test --doc
 
+.PHONY: build
+build: ## Create reseale binary
+	cargo build --release
+
 .PHONY: doc
 doc: ## Build and open docs
 	cargo doc --open

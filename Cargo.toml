@@ -21,7 +21,7 @@ rstest = "0.26.1"
 secrecy = {version = "0.10.3", features = ["serde"]}
 serde = "1.0.228"
 serde-aux = "4.7.0"
-sysinfo = "0.38.3"
+sysinfo = "0.38.4"
 thiserror = "2.0.18"
 tiberius = {version = "0.12.3", features = ["rustls"], default-features = false}
 tokio = {version = "1.50.0", features = ["rt-multi-thread", "macros"]}
@@ -35,4 +35,4 @@ uuid = {version = "1.22.0", features = ["v4"]}
 [dev-dependencies]
 refinery = {version = "0.9.0", features = ["tiberius"]}
 reqwest = {version = "0.13.2", features = ["json", "rustls", "cookies"]}
-once_cell = "1.21.3"
+once_cell = "1.21.4"

@@ -13,18 +13,18 @@ use crate::{
     run::AppState,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-enum DatabaseConnectionState {
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum DatabaseConnectionState {
     Healthy,
     Unhealthy,
 }
 
 /// The Health of Maedic itself
 /// Checks for a healthy Database connection
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct MaedicHealth {
-    database_connection: DatabaseConnectionState,
-    version_number: String,
+    pub database_connection: DatabaseConnectionState,
+    pub version_number: String,
 }
 
 /// Default values for MaedicHealth

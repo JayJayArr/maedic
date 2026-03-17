@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Health components of the connected PW instance
 ///
@@ -7,7 +7,7 @@ use serde::Serialize;
 /// - Spool Files (unfinished downloads to the hardware)
 /// - Service_State (the status of the PW Windows Service)
 /// - Checks for CPU and RAM usage
-#[derive(Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct PWHealth {
     pub hi_queue_size: Option<i32>,
     pub unhealthy_spool_files: Option<Vec<SpoolFileCount>>,
@@ -23,7 +23,7 @@ pub struct SystemHealth {
     pub used_memory_percentage: f32,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct SpoolFileCount {
     pub spool_file_count: i32,
     pub description: String,
@@ -40,7 +40,7 @@ impl From<tiberius::Row> for SpoolFileCount {
     }
 }
 
-#[derive(Serialize, Clone, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub enum ServiceState {
     Up,
     Down,

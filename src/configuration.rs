@@ -48,7 +48,7 @@ pub struct DatabaseSettings {
     pub trust_cert: bool,
 }
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub struct LimitSettings {
     pub hi_queue_count: i32,
     pub spool_file_count: i32,

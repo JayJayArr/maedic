@@ -4,6 +4,7 @@ use crate::{
     configuration::{DBConnectionPool, Settings, SystemState},
     database::{self_health, setup_database_pool},
     health::{check_health, get_config_handler},
+    metrics::metrics_handler,
 };
 use axum::{
     Router,
@@ -55,6 +56,7 @@ pub async fn run(
         .route("/v1/health", get(check_health))
         .route("/v1/config", get(get_config_handler))
         .route("/v1/self", get(self_health))
+        .route("/v1/metrics", get(metrics_handler))
         .layer(GovernorLayer::new(governor_conf))
         .layer(
             TraceLayer::new_for_http()

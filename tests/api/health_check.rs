@@ -4,7 +4,7 @@ use maedic::{
     indicators::PWHealth,
 };
 
-use crate::db::helpers::spawn_app;
+use crate::api::helpers::spawn_app;
 
 #[tokio::test]
 async fn test_self_health_works() {

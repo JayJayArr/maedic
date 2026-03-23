@@ -16,7 +16,7 @@ anyhow = "1.0.102"
 axum = {version = "0.8.8", features = ["tokio", "macros", "json"]}
 bb8 = "0.9.1"
 bb8-tiberius = "0.16.0"
-config = {version = "0.15.19", features = ["yaml"]}
+config = {version = "0.15.22", features = ["yaml"]}
 rstest = "0.26.1"
 secrecy = {version = "0.10.3", features = ["serde"]}
 serde = "1.0.228"
@@ -29,7 +29,7 @@ tokio-util = { version = "0.7.18", features = ["compat"]}
 tower_governor = "0.8.0"
 tower-http = {version = "0.6.8", features= ["trace", "request-id"]}
 tracing = {version="0.1.44", features = ["std", "attributes"]}
-tracing-subscriber = {version = "0.3.22", features = ["json", "std", "env-filter", "registry", "fmt"]}
+tracing-subscriber = {version = "0.3.23", features = ["json", "std", "env-filter", "registry", "fmt"]}
 uuid = {version = "1.22.0", features = ["v4"]}
 
 [dev-dependencies]

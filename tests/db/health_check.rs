@@ -1,9 +1,10 @@
-use crate::helpers::spawn_app;
 use maedic::{
     configuration::LimitSettings,
     database::{DatabaseConnectionState, MaedicHealth},
     indicators::PWHealth,
 };
+
+use crate::db::helpers::spawn_app;
 
 #[tokio::test]
 async fn test_self_health_works() {

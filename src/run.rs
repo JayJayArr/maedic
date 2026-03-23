@@ -75,11 +75,13 @@ pub async fn run(
                 .on_failure(()),
         )
         .with_state(state);
+
     info!(
         "Starting maedic version {} on port: {}",
         env!("CARGO_PKG_VERSION"),
         configuration.application.port
     );
+
     Ok(axum::serve(
         listener,
         app.into_make_service_with_connect_info::<SocketAddr>(),

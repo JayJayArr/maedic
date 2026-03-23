@@ -9,7 +9,7 @@ test: ## Run all tests
 	cargo test --doc
 
 .PHONY: build
-build: ## Create reseale binary
+build: ## Create release binary
 	cargo build --release
 
 .PHONY: doc

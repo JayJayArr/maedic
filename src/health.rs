@@ -13,7 +13,7 @@ pub async fn check_health(
     State(state): State<AppState>,
 ) -> Result<(StatusCode, Json<PWHealth>), ApplicationError> {
     let limits = state.config.limits;
-    // HIQUEUE
+    // HI_QUEUE
     let hi_queue_size = if limits.hi_queue_count == 0 {
         None
     } else {

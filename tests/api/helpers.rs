@@ -1,14 +1,27 @@
+use axum::Router;
+use axum::extract::ConnectInfo;
+use axum::extract::connect_info::IntoMakeServiceWithConnectInfo;
+use axum::middleware::AddExtension;
+use axum::serve::Serve;
+use maedic::run::run;
 use maedic::{
     configuration::{DBConnectionPool, DatabaseSettings, Settings, get_configuration},
     database::setup_database_pool,
-    run::Application,
+    run::AppState,
     telemetry::initialize_tracing,
 };
 use once_cell::sync::Lazy;
+use prometheus_client::registry::Registry;
 use secrecy::ExposeSecret;
+use std::net::SocketAddr;
+use std::sync::Arc;
+use sysinfo::System;
 use tiberius::{AuthMethod, Client, Config};
+use tokio::net::TcpListener;
 use tokio::net::TcpStream;
+use tokio::sync::Mutex;
 use tokio_util::compat::{Compat, TokioAsyncWriteCompatExt};
+use tracing::info;
 use uuid::Uuid;
 
 #[allow(dead_code)]
@@ -96,4 +109,53 @@ pub async fn create_database(db_config: &DatabaseSettings) {
         .unwrap();
 
     configure_database(client).await;
+}
+
+impl Application {
+    pub async fn build(configuration: Settings) -> Result<Self, anyhow::Error> {
+        let connection_pool = setup_database_pool(configuration.database.clone())
+            .await
+            .unwrap();
+        let listener = TcpListener::bind(format!(
+            "{}:{}",
+            configuration.application.host, configuration.application.port
+        ))
+        .await
+        .expect("could not bind port");
+        let port = listener.local_addr().unwrap().port();
+        info!(
+            "Starting app on {:?}:{:?}",
+            configuration.application.host, configuration.application.port
+        );
+        //Start the application
+        let server = run(
+            listener,
+            AppState {
+                pool: connection_pool,
+                config: configuration.clone(),
+                sys: Arc::new(Mutex::new(System::new_all())),
+                registry: Registry::default(),
+            },
+            configuration,
+        )
+        .await?;
+        Ok(Self { port, server })
+    }
+
+    pub fn port(&self) -> u16 {
+        self.port
+    }
+
+    pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
+        self.server.await
+    }
+}
+
+pub struct Application {
+    port: u16,
+    server: Serve<
+        TcpListener,
+        IntoMakeServiceWithConnectInfo<Router, SocketAddr>,
+        AddExtension<Router, ConnectInfo<SocketAddr>>,
+    >,
 }

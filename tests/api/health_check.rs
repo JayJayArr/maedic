@@ -4,11 +4,11 @@ use maedic::{
     indicators::PWHealth,
 };
 
-use crate::api::helpers::spawn_app;
+use crate::api::helpers::TestApplication;
 
 #[tokio::test]
 async fn test_self_health_works() {
-    let app = spawn_app().await;
+    let app = TestApplication::spawn_app().await;
     let client = reqwest::Client::new();
 
     let response = client
@@ -30,7 +30,7 @@ async fn test_self_health_works() {
 
 #[tokio::test]
 async fn test_config_endpoint_works() {
-    let app = spawn_app().await;
+    let app = TestApplication::spawn_app().await;
     let client = reqwest::Client::new();
 
     let response = client
@@ -48,7 +48,7 @@ async fn test_config_endpoint_works() {
 
 #[tokio::test]
 async fn test_pw_health_endpoint_works_with_db() {
-    let app = spawn_app().await;
+    let app = TestApplication::spawn_app().await;
     let client = reqwest::Client::new();
 
     let response = client

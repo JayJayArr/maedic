@@ -3,6 +3,7 @@ use axum::extract::ConnectInfo;
 use axum::extract::connect_info::IntoMakeServiceWithConnectInfo;
 use axum::middleware::AddExtension;
 use axum::serve::Serve;
+use maedic::metrics::setup_metrics_registry;
 use maedic::run::run;
 use maedic::{
     configuration::{DBConnectionPool, DatabaseSettings, Settings, get_configuration},
@@ -11,7 +12,6 @@ use maedic::{
     telemetry::initialize_tracing,
 };
 use once_cell::sync::Lazy;
-use prometheus_client::registry::Registry;
 use secrecy::ExposeSecret;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -25,7 +25,7 @@ use tracing::info;
 use uuid::Uuid;
 
 #[allow(dead_code)]
-pub struct TestApp {
+pub struct TestApplication {
     pub address: String,
     pub port: u16,
     pub pool: DBConnectionPool,
@@ -36,34 +36,86 @@ static TRACING: Lazy<()> = Lazy::new(|| {
     initialize_tracing("info".to_string()).unwrap();
 });
 
-pub async fn spawn_app() -> TestApp {
-    Lazy::force(&TRACING);
+impl TestApplication {
+    pub async fn spawn_app() -> TestApplication {
+        Lazy::force(&TRACING);
 
-    let configuration = {
-        let mut c = get_configuration("test".to_string()).expect("Failed to read configuration");
-        c.database.database_name = Uuid::new_v4().to_string();
-        c.application.port = 0;
-        c
-    };
+        let configuration = {
+            let mut c =
+                get_configuration("test".to_string()).expect("Failed to read configuration");
+            c.database.database_name = Uuid::new_v4().to_string();
+            c.application.port = 0;
+            c
+        };
 
-    create_database(&configuration.database).await;
+        create_database(&configuration.database).await;
 
-    let pool = setup_database_pool(configuration.database.clone())
+        let pool = setup_database_pool(configuration.database.clone())
+            .await
+            .unwrap();
+
+        let application = TestServer::build(configuration.clone())
+            .await
+            .expect("Failed to build Application.");
+        let application_port = application.port();
+        let address = format!("http://127.0.0.1:{}", application.port());
+        let _handle = tokio::spawn(application.run_until_stopped());
+
+        TestApplication {
+            pool,
+            port: application_port,
+            address,
+            config: configuration,
+        }
+    }
+}
+
+pub struct TestServer {
+    port: u16,
+    server: Serve<
+        TcpListener,
+        IntoMakeServiceWithConnectInfo<Router, SocketAddr>,
+        AddExtension<Router, ConnectInfo<SocketAddr>>,
+    >,
+}
+
+impl TestServer {
+    pub async fn build(configuration: Settings) -> Result<Self, anyhow::Error> {
+        let connection_pool = setup_database_pool(configuration.database.clone())
+            .await
+            .unwrap();
+        let listener = TcpListener::bind(format!(
+            "{}:{}",
+            configuration.application.host, configuration.application.port
+        ))
         .await
-        .unwrap();
+        .expect("could not bind port");
+        let port = listener.local_addr().unwrap().port();
+        info!(
+            "Starting app on {:?}:{:?}",
+            configuration.application.host, configuration.application.port
+        );
+        //Start the application
+        let server = run(
+            listener,
+            AppState {
+                pool: connection_pool,
+                config: configuration.clone(),
+                sys: Arc::new(Mutex::new(System::new_all())),
+                registry: setup_metrics_registry().await,
+            },
+            configuration,
+        )
+        .await?;
+        Ok(Self { port, server })
+    }
 
-    let application = Application::build(configuration.clone())
-        .await
-        .expect("Failed to build Application.");
-    let application_port = application.port();
-    let address = format!("http://127.0.0.1:{}", application.port());
-    let _handle = tokio::spawn(application.run_until_stopped());
+    pub fn port(&self) -> u16 {
+        self.port
+    }
 
-    TestApp {
-        pool,
-        port: application_port,
-        address,
-        config: configuration,
+    pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
+        self.server.await
     }
 }
 
@@ -109,53 +161,4 @@ pub async fn create_database(db_config: &DatabaseSettings) {
         .unwrap();
 
     configure_database(client).await;
-}
-
-impl Application {
-    pub async fn build(configuration: Settings) -> Result<Self, anyhow::Error> {
-        let connection_pool = setup_database_pool(configuration.database.clone())
-            .await
-            .unwrap();
-        let listener = TcpListener::bind(format!(
-            "{}:{}",
-            configuration.application.host, configuration.application.port
-        ))
-        .await
-        .expect("could not bind port");
-        let port = listener.local_addr().unwrap().port();
-        info!(
-            "Starting app on {:?}:{:?}",
-            configuration.application.host, configuration.application.port
-        );
-        //Start the application
-        let server = run(
-            listener,
-            AppState {
-                pool: connection_pool,
-                config: configuration.clone(),
-                sys: Arc::new(Mutex::new(System::new_all())),
-                registry: Registry::default(),
-            },
-            configuration,
-        )
-        .await?;
-        Ok(Self { port, server })
-    }
-
-    pub fn port(&self) -> u16 {
-        self.port
-    }
-
-    pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
-        self.server.await
-    }
-}
-
-pub struct Application {
-    port: u16,
-    server: Serve<
-        TcpListener,
-        IntoMakeServiceWithConnectInfo<Router, SocketAddr>,
-        AddExtension<Router, ConnectInfo<SocketAddr>>,
-    >,
 }

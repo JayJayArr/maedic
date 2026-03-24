@@ -1,10 +1,10 @@
 use maedic::{
     configuration::get_configuration,
     database::setup_database_pool,
+    metrics::setup_metrics_registry,
     run::{AppState, run},
     telemetry::initialize_tracing,
 };
-use prometheus_client::registry::Registry;
 use std::sync::Arc;
 use sysinfo::System;
 use tokio::sync::Mutex;
@@ -34,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
         pool,
         config: configuration.clone(),
         sys: Arc::new(Mutex::new(System::new_all())),
-        registry: Registry::default(),
+        registry: setup_metrics_registry().await,
     };
 
     run(listener, state, configuration)

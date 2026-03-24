@@ -5,14 +5,17 @@ use crate::{
     run::AppState,
 };
 use axum::{Json, extract::State, http::StatusCode};
+use std::sync::Arc;
 use sysinfo::Process;
+use tokio::sync::Mutex;
 use tracing::error;
 
 #[tracing::instrument(name = "check PW health", skip_all)]
 pub async fn check_health(
-    State(state): State<AppState>,
+    State(state): State<Arc<Mutex<AppState>>>,
 ) -> Result<(StatusCode, Json<PWHealth>), ApplicationError> {
-    let limits = state.config.limits;
+    let state = state.lock().await;
+    let limits = state.config.limits.clone();
     // HI_QUEUE
     let hi_queue_size = if limits.hi_queue_count == 0 {
         None
@@ -23,7 +26,7 @@ pub async fn check_health(
     let unhealthy_spool_files = if limits.spool_file_count == 0 {
         None
     } else {
-        Some(get_unhealthy_spoolfiles(state.pool, limits.spool_file_count).await?)
+        Some(get_unhealthy_spoolfiles(state.pool.clone(), limits.spool_file_count).await?)
     };
     let service_state = if !limits.check_local_service {
         None
@@ -166,10 +169,11 @@ async fn get_unhealthy_spoolfiles(
 
 #[tracing::instrument(name = "Getting exposed config", skip_all)]
 pub async fn get_config_handler(
-    State(state): State<AppState>,
+    State(state): State<Arc<Mutex<AppState>>>,
 ) -> Result<(StatusCode, Json<LimitSettings>), StatusCode> {
+    let state = state.lock().await;
     if state.config.application.expose_config {
-        Ok((StatusCode::OK, Json(state.config.limits)))
+        Ok((StatusCode::OK, Json(state.config.limits.clone())))
     } else {
         Err(StatusCode::NOT_FOUND)
     }

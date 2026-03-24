@@ -4,8 +4,10 @@ use bb8_tiberius::ConnectionManager;
 use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
+use std::sync::Arc;
 use tiberius::{AuthMethod, Config};
 use tokio::net::TcpStream;
+use tokio::sync::Mutex;
 
 use crate::{
     configuration::{DBConnectionPool, DatabaseSettings},
@@ -72,8 +74,9 @@ pub async fn setup_database_pool(
 }
 
 #[tracing::instrument(name = "Check self health", skip(state))]
-pub async fn self_health(State(state): State<AppState>) -> Json<MaedicHealth> {
-    match get_db_status(state.pool).await {
+pub async fn self_health(State(state): State<Arc<Mutex<AppState>>>) -> Json<MaedicHealth> {
+    let state = state.lock().await;
+    match get_db_status(state.pool.clone()).await {
         Ok(state) => match state {
             DatabaseConnectionState::Healthy => Json(MaedicHealth::healthy()),
             DatabaseConnectionState::Unhealthy => Json(MaedicHealth::unhealthy()),

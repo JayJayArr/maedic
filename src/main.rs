@@ -4,6 +4,7 @@ use maedic::{
     run::{AppState, run},
     telemetry::initialize_tracing,
 };
+use prometheus_client::registry::Registry;
 use std::sync::Arc;
 use sysinfo::System;
 use tokio::sync::Mutex;
@@ -33,6 +34,7 @@ async fn main() -> anyhow::Result<()> {
         pool,
         config: configuration.clone(),
         sys: Arc::new(Mutex::new(System::new_all())),
+        registry: Registry::default(),
     };
 
     run(listener, state, configuration)

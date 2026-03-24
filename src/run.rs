@@ -1,5 +1,3 @@
-use std::{net::SocketAddr, sync::Arc};
-
 use crate::{
     configuration::{DBConnectionPool, Settings, SystemState},
     database::{self_health, setup_database_pool},
@@ -12,6 +10,8 @@ use axum::{
     middleware::AddExtension,
 };
 use axum::{routing::get, serve::Serve};
+use prometheus_client::registry::Registry;
+use std::{net::SocketAddr, sync::Arc};
 use sysinfo::System;
 use tokio::{net::TcpListener, sync::Mutex};
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
@@ -27,11 +27,12 @@ pub struct Application {
     >,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct AppState {
     pub pool: DBConnectionPool,
     pub config: Settings,
     pub sys: SystemState,
+    pub registry: Registry,
 }
 
 pub async fn run(
@@ -76,7 +77,7 @@ pub async fn run(
                 })
                 .on_failure(()),
         )
-        .with_state(state);
+        .with_state(Arc::new(Mutex::new(state)));
 
     info!(
         "Starting maedic version {} on port: {}",
@@ -113,6 +114,7 @@ impl Application {
                 pool: connection_pool,
                 config: configuration.clone(),
                 sys: Arc::new(Mutex::new(System::new_all())),
+                registry: Registry::default(),
             },
             configuration,
         )

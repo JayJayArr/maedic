@@ -8,19 +8,12 @@ use maedic::{
 use std::sync::Arc;
 use sysinfo::System;
 use tokio::sync::Mutex;
-use tracing::info;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let configuration = get_configuration("base".to_string())?;
 
     initialize_tracing(configuration.application.log_level.clone())?;
-
-    info!(
-        "Starting maedic version {} with config: {:?}",
-        env!("CARGO_PKG_VERSION"),
-        configuration
-    );
 
     let listener = tokio::net::TcpListener::bind(format!(
         "{}:{}",

@@ -70,9 +70,9 @@ pub async fn run(
         .with_state(Arc::new(Mutex::new(state)));
 
     info!(
-        "Starting maedic version {} on port: {}",
+        "Starting maedic version {} with config: {:?}",
         env!("CARGO_PKG_VERSION"),
-        configuration.application.port
+        configuration
     );
 
     Ok(axum::serve(

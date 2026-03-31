@@ -23,11 +23,13 @@ async fn main() -> anyhow::Result<()> {
     .expect("Could not bind to port");
 
     let pool = setup_database_pool(configuration.database.clone()).await?;
+    let (registry, metrics) = setup_metrics_registry().await;
     let state = AppState {
         pool,
         config: configuration.clone(),
         sys: Arc::new(Mutex::new(System::new_all())),
-        registry: setup_metrics_registry().await,
+        registry,
+        metrics,
     };
 
     run(listener, state, configuration)

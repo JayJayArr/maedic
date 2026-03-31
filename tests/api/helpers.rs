@@ -91,6 +91,7 @@ impl TestServer {
         .await
         .expect("could not bind port");
         let port = listener.local_addr().unwrap().port();
+        let (registry, metrics) = setup_metrics_registry().await;
         info!(
             "Starting app on {:?}:{:?}",
             configuration.application.host, configuration.application.port
@@ -102,7 +103,8 @@ impl TestServer {
                 pool: connection_pool,
                 config: configuration.clone(),
                 sys: Arc::new(Mutex::new(System::new_all())),
-                registry: setup_metrics_registry().await,
+                registry,
+                metrics,
             },
             configuration,
         )

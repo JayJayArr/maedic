@@ -1,6 +1,5 @@
 use maedic::{
-    configuration::LimitSettings,
-    database::{DatabaseConnectionState, MaedicHealth},
+    configuration::LimitSettings, database::DatabaseConnectionState, health::MaedicHealth,
     indicators::PWHealth,
 };
 

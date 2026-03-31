@@ -2,7 +2,7 @@ use crate::{
     configuration::{DBConnectionPool, Settings, SystemState},
     database::self_health,
     health::{check_health, get_config_handler},
-    metrics::metrics_handler,
+    metrics::{Metrics, metrics_handler},
 };
 use axum::{
     Router,
@@ -23,6 +23,7 @@ pub struct AppState {
     pub config: Settings,
     pub sys: SystemState,
     pub registry: Registry,
+    pub metrics: Metrics,
 }
 
 pub async fn run(
@@ -48,6 +49,7 @@ pub async fn run(
         .route("/v1/config", get(get_config_handler))
         .route("/v1/self", get(self_health))
         .route("/v1/metrics", get(metrics_handler))
+        .with_state(Arc::new(Mutex::new(state)))
         .layer(GovernorLayer::new(governor_conf))
         .layer(
             TraceLayer::new_for_http()
@@ -66,8 +68,7 @@ pub async fn run(
                     )
                 })
                 .on_failure(()),
-        )
-        .with_state(Arc::new(Mutex::new(state)));
+        );
 
     info!(
         "Starting maedic version {} with config: {:?}",

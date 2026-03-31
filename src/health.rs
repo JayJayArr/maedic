@@ -1,14 +1,61 @@
 use crate::{
-    configuration::{DBConnectionPool, LimitSettings, SystemState},
+    configuration::{LimitSettings, SystemState},
+    database::{DatabaseConnectionState, get_hiqueue_count, get_unhealthy_spoolfiles},
     error::ApplicationError,
-    indicators::{PWHealth, ServiceState, SpoolFileCount},
+    indicators::{PWHealth, ServiceState},
     run::AppState,
 };
-use axum::{Json, extract::State, http::StatusCode};
-use std::sync::Arc;
+use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use serde::{Deserialize, Serialize};
+use std::{fmt::Display, sync::Arc};
 use sysinfo::Process;
 use tokio::sync::Mutex;
 use tracing::error;
+
+/// The Health of Maedic itself
+/// Checks for a healthy Database connection
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct MaedicHealth {
+    pub database_connection: DatabaseConnectionState,
+    pub version_number: String,
+}
+
+/// Default values for MaedicHealth
+impl MaedicHealth {
+    pub fn healthy() -> Self {
+        Self {
+            database_connection: DatabaseConnectionState::Healthy,
+            version_number: env!("CARGO_PKG_VERSION").to_string(),
+        }
+    }
+
+    pub fn unhealthy() -> Self {
+        Self {
+            database_connection: DatabaseConnectionState::Unhealthy,
+            version_number: env!("CARGO_PKG_VERSION").to_string(),
+        }
+    }
+}
+
+impl IntoResponse for MaedicHealth {
+    fn into_response(self) -> axum::response::Response {
+        match self.database_connection {
+            DatabaseConnectionState::Healthy => (StatusCode::OK, self.to_string()).into_response(),
+            DatabaseConnectionState::Unhealthy => {
+                (StatusCode::SERVICE_UNAVAILABLE, self.to_string()).into_response()
+            }
+        }
+    }
+}
+
+impl Display for MaedicHealth {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.database_connection {
+            DatabaseConnectionState::Healthy => write!(f, "database_connection: healthy"),
+            DatabaseConnectionState::Unhealthy => write!(f, "database_connection: unhealthy"),
+        }
+    }
+}
 
 #[tracing::instrument(name = "check PW health", skip_all)]
 pub async fn check_health(
@@ -129,44 +176,6 @@ async fn check_local_service(sys: &SystemState, service_name: &String) -> Servic
     }
 }
 
-#[tracing::instrument(name = "Check HI_QUEUE Table", skip_all)]
-async fn get_hiqueue_count(pool: DBConnectionPool) -> Result<i32, ApplicationError> {
-    let mut client = pool.get().await?;
-    let size = client
-        .simple_query("SELECT COUNT(*) as HIQUEUECOUNT FROM HI_QUEUE")
-        .await?
-        .into_row()
-        .await?
-        .unwrap()
-        .get::<i32, &str>("HIQUEUECOUNT")
-        .ok_or(ApplicationError::Conversion(
-            "Failed to convert HIQUEUECOUNT".to_string(),
-        ))?;
-    Ok(size)
-}
-
-#[tracing::instrument(name = "Check unhealthy spoolfiles", skip_all)]
-async fn get_unhealthy_spoolfiles(
-    pool: DBConnectionPool,
-    limit_per_channel: i32,
-) -> Result<Vec<SpoolFileCount>, ApplicationError> {
-    let mut client = pool.get().await?;
-    let queryresult = client
-        .query("select DESCRP as description, SPOOl_FILE_COUNT as spool_file_count, SPOOL_DIR as directory from CHANNEL where Installed = 'Y' and SPOOl_FILE_COUNT > @P1", &[&limit_per_channel])
-        .await?.into_results().await?;
-
-    let spool_file_counts = queryresult[0]
-        .iter()
-        .map(|row| SpoolFileCount {
-            description: row.get::<&str, &str>("description").unwrap().to_string(),
-            spool_file_count: row.get("spool_file_count").unwrap(),
-            directory: row.get::<&str, &str>("directory").unwrap().to_string(),
-        })
-        .collect();
-
-    Ok(spool_file_counts)
-}
-
 #[tracing::instrument(name = "Getting exposed config", skip_all)]
 pub async fn get_config_handler(
     State(state): State<Arc<Mutex<AppState>>>,
@@ -181,6 +190,8 @@ pub async fn get_config_handler(
 
 #[cfg(test)]
 mod tests {
+    use crate::indicators::SpoolFileCount;
+
     use super::*;
     use rstest::rstest;
     impl Default for PWHealth {

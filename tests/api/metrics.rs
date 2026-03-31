@@ -15,7 +15,7 @@ async fn test_metrics_endpoint_works() {
         .text()
         .await
         .expect("Could not convert response to text");
-    dbg!(&text);
 
     assert!(text.contains("Number of database objects"));
+    assert!(text.contains("HiQueue"));
 }

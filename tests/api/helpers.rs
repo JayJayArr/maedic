@@ -121,6 +121,26 @@ impl TestServer {
     }
 }
 
+pub struct TestClient {
+    client: reqwest::Client,
+}
+
+impl TestClient {
+    pub async fn get_endpoint(&self, address: String, endpoint: &str) -> reqwest::Response {
+        self.client
+            .get(format!("{}{}", address, endpoint))
+            .send()
+            .await
+            .expect("Failed to execute request")
+    }
+
+    pub fn new() -> Self {
+        return Self {
+            client: reqwest::Client::new(),
+        };
+    }
+}
+
 mod embedded {
     use refinery::embed_migrations;
     embed_migrations!("migrations");

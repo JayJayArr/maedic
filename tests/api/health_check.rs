@@ -1,9 +1,8 @@
+use crate::api::helpers::TestApplication;
 use maedic::{
     configuration::LimitSettings, database::DatabaseConnectionState, health::MaedicHealth,
     indicators::PWHealth,
 };
-
-use crate::api::helpers::TestApplication;
 
 #[tokio::test]
 async fn test_self_health_works() {

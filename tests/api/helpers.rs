@@ -24,9 +24,9 @@ use tokio_util::compat::{Compat, TokioAsyncWriteCompatExt};
 use tracing::info;
 use uuid::Uuid;
 
+#[allow(dead_code)]
 pub struct TestApplication {
     pub address: String,
-    pub port: u16,
     pub pool: DBConnectionPool,
     pub config: Settings,
 }
@@ -56,20 +56,19 @@ impl TestApplication {
         let application = TestServer::build(configuration.clone())
             .await
             .expect("Failed to build Application.");
-        let application_port = application.port();
         let address = format!("http://127.0.0.1:{}", application.port());
-        let _handle = tokio::spawn(application.run_until_stopped());
 
-        TestApplication {
+        let app = TestApplication {
             pool,
-            port: application_port,
             address,
             config: configuration,
-        }
+        };
+        let _handle = tokio::spawn(application.run_until_stopped());
+        app
     }
 }
 
-/// `TestApplication` which sets up a fresh Database for each test
+/// `TestServer` which sets up a fresh Database for each test
 pub struct TestServer {
     port: u16,
     server: Serve<

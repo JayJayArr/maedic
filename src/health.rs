@@ -57,6 +57,7 @@ impl Display for MaedicHealth {
     }
 }
 
+/// Handler to check the Health of PW
 #[tracing::instrument(name = "check PW health", skip_all)]
 pub async fn check_health(
     State(state): State<Arc<Mutex<AppState>>>,

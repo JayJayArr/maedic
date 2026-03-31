@@ -24,7 +24,6 @@ use tokio_util::compat::{Compat, TokioAsyncWriteCompatExt};
 use tracing::info;
 use uuid::Uuid;
 
-#[allow(dead_code)]
 pub struct TestApplication {
     pub address: String,
     pub port: u16,
@@ -70,6 +69,7 @@ impl TestApplication {
     }
 }
 
+/// `TestApplication` which sets up a fresh Database for each test
 pub struct TestServer {
     port: u16,
     server: Serve<
@@ -121,6 +121,7 @@ impl TestServer {
     }
 }
 
+/// Client to handle easy requests to the `TestApplication`
 pub struct TestClient {
     client: reqwest::Client,
 }

@@ -17,6 +17,7 @@ use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
 use tower_http::trace::TraceLayer;
 use tracing::{info, info_span};
 
+/// The current running state of the Application
 #[derive(Debug)]
 pub struct AppState {
     pub pool: DBConnectionPool,
@@ -26,6 +27,7 @@ pub struct AppState {
     pub metrics: Metrics,
 }
 
+/// Start the Application with specific `Settings` and `AppState`
 pub async fn run(
     listener: TcpListener,
     state: AppState,

@@ -1,17 +1,22 @@
 use axum::{http::StatusCode, response::IntoResponse};
 use bb8::RunError;
 
+/// Runtime Errors
 #[derive(thiserror::Error, Debug)]
 pub enum ApplicationError {
+    /// Unknown Error
     #[error(transparent)]
     Unexpected(#[from] anyhow::Error),
 
+    /// Error from a Database query
     #[error(transparent)]
     Database(#[from] tiberius::error::Error),
 
+    /// Error when trying to establish a Connection to the Database
     #[error(transparent)]
     DatabaseConnection(#[from] RunError<bb8_tiberius::Error>),
 
+    /// Error during Conversion from a Database Value
     #[error("{0}")]
     Conversion(String),
 }

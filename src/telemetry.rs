@@ -1,5 +1,6 @@
 use tracing_subscriber::{EnvFilter, Layer, layer::SubscriberExt, util::SubscriberInitExt};
 
+/// Initialize `Tracing` and a `tracing_subscriber
 pub fn initialize_tracing(env_filter: String) -> anyhow::Result<()> {
     //Filter unnecessary info
     let filter = EnvFilter::new(env_filter.clone())

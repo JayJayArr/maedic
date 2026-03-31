@@ -15,6 +15,7 @@ use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use tokio::sync::Mutex;
 
+/// `TableSizes` lists the Tables where the size is used in the metrics
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelValue, EnumIter, strum_macros::Display)]
 pub enum TableSizes {
     #[strum(to_string = "badge")]
@@ -41,6 +42,8 @@ pub enum TableSizes {
     Workstations,
 }
 
+/// `CardStates` lists the possible States of a saved card
+/// e.g. `Active` or `Disabled`, each state being saved as a single char in the db
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelValue, EnumIter, strum_macros::Display)]
 pub enum CardStates {
     #[strum(to_string = "A")]
@@ -49,15 +52,19 @@ pub enum CardStates {
     Disabled,
 }
 
+/// `CardStateLabels`` is the displayed label for each Metric in the family
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 pub struct CardStateLabels {
     pub status: CardStates,
 }
+
+/// `TableSizeLabels` is the displayed label for each Metric in the family
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 pub struct TableSizeLabels {
     pub table: TableSizes,
 }
 
+/// `Metrics` is the complete collection of all exposed metrics
 #[derive(Debug, Default)]
 pub struct Metrics {
     table: Family<TableSizeLabels, Gauge>,

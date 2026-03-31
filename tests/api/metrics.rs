@@ -16,6 +16,18 @@ async fn test_metrics_endpoint_works() {
         .await
         .expect("Could not convert response to text");
 
+    dbg!(&text);
+
     assert!(text.contains("Number of database objects"));
+    assert!(text.contains("tablesize"));
+
+    assert!(text.contains("Badges"));
+    assert!(text.contains("Cards"));
+    assert!(text.contains("Panels"));
+    assert!(text.contains("Channels"));
+    assert!(text.contains("Subpanels"));
+    assert!(text.contains("Readers"));
     assert!(text.contains("HiQueue"));
+    assert!(text.contains("UnackAlarms"));
+    assert!(text.contains("Events"));
 }

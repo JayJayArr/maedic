@@ -1,5 +1,5 @@
 use crate::configuration::DBConnectionPool;
-use crate::database::get_hiqueue_count;
+use crate::database::get_table_count;
 use crate::error::ApplicationError;
 use crate::run::AppState;
 use axum::body::Body;
@@ -11,33 +11,47 @@ use prometheus_client::metrics::family::Family;
 use prometheus_client::metrics::gauge::Gauge;
 use prometheus_client::registry::Registry;
 use std::sync::Arc;
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 use tokio::sync::Mutex;
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelValue)]
-pub enum Counts {
-    USERS,
-    CARDS,
-    PANELS,
-    CHANNELS,
-    SUBPANELS,
-    READERS,
+#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelValue, EnumIter, strum_macros::Display)]
+pub enum TableSizes {
+    #[strum(to_string = "badge")]
+    Badges,
+    #[strum(to_string = "badge_c")]
+    Cards,
+    #[strum(to_string = "panel")]
+    Panels,
+    #[strum(to_string = "channel")]
+    Channels,
+    #[strum(to_string = "spanel")]
+    Subpanels,
+    #[strum(to_string = "reader")]
+    Readers,
+    #[strum(to_string = "hi_queue")]
     HiQueue,
+    #[strum(to_string = "unack_Al")]
     UnackAlarms,
+    #[strum(to_string = "ev_log")]
+    Events,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
-pub struct CountLabels {
-    pub size: Counts,
+pub struct TableSizeLabels {
+    pub size: TableSizes,
 }
 
 #[derive(Debug, Default)]
 pub struct Metrics {
-    sizes: Family<CountLabels, Gauge>,
+    sizes: Family<TableSizeLabels, Gauge>,
 }
 
 impl Metrics {
-    pub fn set_size(&self, size: Counts, value: i64) {
-        self.sizes.get_or_create(&CountLabels { size }).set(value);
+    pub fn set_size(&self, size: TableSizes, value: i64) {
+        self.sizes
+            .get_or_create(&TableSizeLabels { size })
+            .set(value);
     }
 }
 
@@ -60,8 +74,10 @@ pub async fn collect_metrics(
     pool: DBConnectionPool,
     metrics: &Metrics,
 ) -> Result<(), ApplicationError> {
-    let hi_queue_count = get_hiqueue_count(pool).await?;
-    metrics.set_size(Counts::HiQueue, hi_queue_count.into());
+    for count in TableSizes::iter() {
+        let countvalue = get_table_count(pool.clone(), count.to_string()).await?;
+        metrics.set_size(count, countvalue.into());
+    }
     Ok(())
 }
 
@@ -71,7 +87,7 @@ pub async fn setup_metrics_registry() -> (Registry, Metrics) {
     };
     let mut registry = Registry::default();
     registry.register(
-        "counts",
+        "tablesize",
         "Number of database objects",
         metrics.sizes.clone(),
     );

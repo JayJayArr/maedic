@@ -1,5 +1,5 @@
 use crate::configuration::DBConnectionPool;
-use crate::database::get_table_count;
+use crate::database::{get_card_state, get_table_count};
 use crate::error::ApplicationError;
 use crate::run::AppState;
 use axum::body::Body;
@@ -35,22 +35,45 @@ pub enum TableSizes {
     UnackAlarms,
     #[strum(to_string = "ev_log")]
     Events,
+    #[strum(to_string = "uid")]
+    Users,
+    #[strum(to_string = "wrkst")]
+    Workstations,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelValue, EnumIter, strum_macros::Display)]
+pub enum CardStates {
+    #[strum(to_string = "A")]
+    Active,
+    #[strum(to_string = "D")]
+    Disabled,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+pub struct CardStateLabels {
+    pub status: CardStates,
+}
+#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 pub struct TableSizeLabels {
-    pub size: TableSizes,
+    pub table: TableSizes,
 }
 
 #[derive(Debug, Default)]
 pub struct Metrics {
-    sizes: Family<TableSizeLabels, Gauge>,
+    table: Family<TableSizeLabels, Gauge>,
+    status: Family<CardStateLabels, Gauge>,
 }
 
 impl Metrics {
-    pub fn set_size(&self, size: TableSizes, value: i64) {
-        self.sizes
-            .get_or_create(&TableSizeLabels { size })
+    pub fn set_table_size(&self, size: TableSizes, value: i64) {
+        self.table
+            .get_or_create(&TableSizeLabels { table: size })
+            .set(value);
+    }
+
+    pub fn set_card_state(&self, state: CardStates, value: i64) {
+        self.status
+            .get_or_create(&CardStateLabels { status: state })
             .set(value);
     }
 }
@@ -74,22 +97,30 @@ pub async fn collect_metrics(
     pool: DBConnectionPool,
     metrics: &Metrics,
 ) -> Result<(), ApplicationError> {
+    //Collect Table sizes
     for count in TableSizes::iter() {
         let countvalue = get_table_count(pool.clone(), count.to_string()).await?;
-        metrics.set_size(count, countvalue.into());
+        metrics.set_table_size(count, countvalue.into());
+    }
+
+    for state in CardStates::iter() {
+        let countvalue = get_card_state(pool.clone(), state.to_string()).await?;
+        metrics.set_card_state(state, countvalue.into());
     }
     Ok(())
 }
 
 pub async fn setup_metrics_registry() -> (Registry, Metrics) {
     let metrics = Metrics {
-        sizes: Family::default(),
+        table: Family::default(),
+        status: Family::default(),
     };
     let mut registry = Registry::default();
     registry.register(
         "tablesize",
         "Number of database objects",
-        metrics.sizes.clone(),
+        metrics.table.clone(),
     );
+    registry.register("card_state", "State of cards", metrics.status.clone());
     (registry, metrics)
 }

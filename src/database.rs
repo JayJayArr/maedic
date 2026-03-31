@@ -137,3 +137,25 @@ pub async fn get_table_count(
         ))?;
     Ok(size)
 }
+
+#[tracing::instrument(name = "Check Card Status", skip(pool))]
+pub async fn get_card_state(
+    pool: DBConnectionPool,
+    status: String,
+) -> Result<i32, ApplicationError> {
+    let mut client = pool.get().await?;
+    let size = client
+        .simple_query(format!(
+            "SELECT COUNT(*) as COUNT FROM Badge_C where STAT_COD = '{}'",
+            status
+        ))
+        .await?
+        .into_row()
+        .await?
+        .unwrap()
+        .get::<i32, &str>("COUNT")
+        .ok_or(ApplicationError::Conversion(
+            "Failed to convert COUNT".to_string(),
+        ))?;
+    Ok(size)
+}

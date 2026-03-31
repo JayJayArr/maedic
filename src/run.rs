@@ -39,8 +39,9 @@ pub async fn run(
     anyhow::Error,
 > {
     let governor_conf = GovernorConfigBuilder::default()
+        //The combination of 1 + 4 leads to 5 successful requests before a rate limit response is hit
         .per_second(1)
-        .burst_size(5)
+        .burst_size(4)
         .finish()
         .unwrap();
 

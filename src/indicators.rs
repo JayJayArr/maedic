@@ -1,3 +1,4 @@
+use prometheus_client::encoding::EncodeLabelSet;
 use serde::{Deserialize, Serialize};
 
 /// Health components of the connected PW instance
@@ -71,6 +72,54 @@ impl From<&tiberius::Row> for HiQueueCount {
         HiQueueCount {
             description: val.get::<&str, &str>("description").unwrap().to_string(),
             hi_queue_count: val.get("hi_queue_count").unwrap(),
+        }
+    }
+}
+
+#[derive(Default, Deserialize, Serialize, Debug, PartialEq, EncodeLabelSet, Eq, Hash, Clone)]
+pub struct PanelInstalled {
+    pub description: String,
+    pub firmware_major_version: i64,
+    pub firmware_minor_version: i64,
+    pub installed: i64,
+}
+
+impl From<tiberius::Row> for PanelInstalled {
+    fn from(val: tiberius::Row) -> Self {
+        let split: Vec<&str> = val
+            .get::<&str, &str>("firmware_version")
+            .unwrap()
+            .split_terminator(".")
+            .collect();
+        PanelInstalled {
+            description: val.get::<&str, &str>("description").unwrap().to_string(),
+            installed: if val.get::<&str, &str>("installed").unwrap() == "Y" {
+                1
+            } else {
+                0
+            },
+            firmware_major_version: split[0].parse::<i64>().unwrap(),
+            firmware_minor_version: split[1].parse::<i64>().unwrap(),
+        }
+    }
+}
+
+impl From<&tiberius::Row> for PanelInstalled {
+    fn from(val: &tiberius::Row) -> Self {
+        let split: Vec<&str> = val
+            .get::<&str, &str>("firmware_version")
+            .unwrap()
+            .split_terminator(".")
+            .collect();
+        PanelInstalled {
+            description: val.get::<&str, &str>("description").unwrap().to_string(),
+            installed: if val.get::<&str, &str>("installed").unwrap() == "Y" {
+                1
+            } else {
+                0
+            },
+            firmware_major_version: split[0].parse::<i64>().unwrap(),
+            firmware_minor_version: split[1].parse::<i64>().unwrap(),
         }
     }
 }

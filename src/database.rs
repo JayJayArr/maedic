@@ -12,7 +12,7 @@ use crate::{
     configuration::{DBConnectionPool, DatabaseSettings},
     error::ApplicationError,
     health::MaedicHealth,
-    indicators::{HiQueueCount, SpoolFileCount},
+    indicators::{HiQueueCount, PanelInstalled, SpoolFileCount},
     run::AppState,
 };
 
@@ -242,6 +242,42 @@ pub async fn get_hiqueue_count_per_panel(
             .into_results()
             .await?;
         let hi_queue_count: Vec<HiQueueCount> = result[0].iter().map(|row| row.into()).collect();
+        return Ok(hi_queue_count);
+    }
+    Ok(Vec::new())
+}
+
+#[tracing::instrument(name = "Get Firmware Records", skip(pool))]
+pub async fn get_panel_state(
+    pool: DBConnectionPool,
+) -> Result<Vec<PanelInstalled>, ApplicationError> {
+    let mut client = pool.get().await?;
+    let panel_tablesize = match client
+        .simple_query("SELECT COUNT(*) as COUNT FROM Panel")
+        .await?
+        .into_row()
+        .await?
+    {
+        Some(result) => result
+            .get::<i32, &str>("COUNT")
+            .ok_or(ApplicationError::Conversion(
+                "Failed to convert COUNT".to_string(),
+            ))?,
+        None => {
+            return Err(ApplicationError::Conversion(
+                "No result received".to_string(),
+            ));
+        }
+    };
+    if panel_tablesize != 0 {
+        let result = client
+            .simple_query(
+                "select DESCRP as 'description', FIRMWARE_VERSION as 'firmware_version', INSTALLED as 'installed' from Panel",
+            )
+            .await?
+            .into_results()
+            .await?;
+        let hi_queue_count: Vec<PanelInstalled> = result[0].iter().map(|row| row.into()).collect();
         return Ok(hi_queue_count);
     }
     Ok(Vec::new())

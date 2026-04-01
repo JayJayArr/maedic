@@ -1,7 +1,7 @@
 use crate::configuration::DBConnectionPool;
 use crate::database::{
-    get_card_state, get_hiqueue_count_per_panel, get_table_count, get_unhealthy_spoolfiles,
-    get_version_number,
+    get_card_state, get_hiqueue_count_per_panel, get_panel_state, get_table_count,
+    get_unhealthy_spoolfiles, get_version_number,
 };
 use crate::error::ApplicationError;
 use crate::run::AppState;
@@ -108,6 +108,14 @@ pub struct HiQueueLabel {
     pub channel: String,
 }
 
+/// `PanelFirmwareLabel` is the displayed label for the panel_firmware
+#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+pub struct PanelInstalledLabel {
+    pub panel: String,
+    pub major_version: i64,
+    pub minor_version: i64,
+}
+
 /// `Metrics` is the complete collection of all exposed metrics
 #[derive(Debug, Default)]
 pub struct Metrics {
@@ -116,6 +124,7 @@ pub struct Metrics {
     version: Family<VersionLabels, Gauge>,
     spool_files: Family<SpoolFileLabel, Gauge>,
     hi_queue_counts: Family<HiQueueLabel, Gauge>,
+    panel_installed: Family<PanelInstalledLabel, Gauge>,
 }
 
 impl Metrics {
@@ -148,6 +157,16 @@ impl Metrics {
             .get_or_create(&HiQueueLabel { channel })
             .set(value);
     }
+
+    pub fn set_panel_firmware(&self, panel: String, major: i64, minor: i64, installed: i64) {
+        self.panel_installed
+            .get_or_create(&PanelInstalledLabel {
+                panel,
+                major_version: major,
+                minor_version: minor,
+            })
+            .set(installed);
+    }
 }
 
 #[tracing::instrument(name = "Scrape metrics", skip(state))]
@@ -175,6 +194,7 @@ pub async fn collect_metrics(
     metrics.set_version(VersionComponents::Minor, minor.into());
     metrics.set_version(VersionComponents::Patch, patch.into());
     metrics.set_version(VersionComponents::BuildNo, build_no.into());
+
     // Collect Table sizes
     for count in TableSizes::iter() {
         let countvalue = get_table_count(pool.clone(), count.to_string()).await?;
@@ -202,6 +222,17 @@ pub async fn collect_metrics(
         );
     }
 
+    // Collect and set panel_firmware
+    let panel_firmware_records = get_panel_state(pool.clone()).await?;
+    for panel_firmware in panel_firmware_records {
+        metrics.set_panel_firmware(
+            panel_firmware.description,
+            panel_firmware.firmware_major_version,
+            panel_firmware.firmware_minor_version,
+            panel_firmware.installed,
+        );
+    }
+
     Ok(())
 }
 
@@ -212,6 +243,7 @@ pub async fn setup_metrics_registry() -> (Registry, Metrics) {
         version: Family::default(),
         spool_files: Family::default(),
         hi_queue_counts: Family::default(),
+        panel_installed: Family::default(),
     };
     let mut registry = Registry::default();
     registry.register(
@@ -234,6 +266,11 @@ pub async fn setup_metrics_registry() -> (Registry, Metrics) {
         "hi_queue_counts",
         "Actions queued per Channel",
         metrics.hi_queue_counts.clone(),
+    );
+    registry.register(
+        "panel_installed",
+        "Installation Status of each Panel, 1=UP, 0=DOWN",
+        metrics.panel_installed.clone(),
     );
     (registry, metrics)
 }

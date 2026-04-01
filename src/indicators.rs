@@ -29,6 +29,11 @@ pub struct SpoolFileCount {
     pub description: String,
     pub directory: String,
 }
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct HiQueueCount {
+    pub hi_queue_count: i32,
+    pub description: String,
+}
 
 impl From<tiberius::Row> for SpoolFileCount {
     fn from(val: tiberius::Row) -> Self {
@@ -36,6 +41,34 @@ impl From<tiberius::Row> for SpoolFileCount {
             description: val.get::<&str, &str>("description").unwrap().to_string(),
             spool_file_count: val.get("spool_file_count").unwrap(),
             directory: val.get::<&str, &str>("directory").unwrap().to_string(),
+        }
+    }
+}
+
+impl From<&tiberius::Row> for SpoolFileCount {
+    fn from(val: &tiberius::Row) -> Self {
+        SpoolFileCount {
+            description: val.get::<&str, &str>("description").unwrap().to_string(),
+            spool_file_count: val.get("spool_file_count").unwrap(),
+            directory: val.get::<&str, &str>("directory").unwrap().to_string(),
+        }
+    }
+}
+
+impl From<tiberius::Row> for HiQueueCount {
+    fn from(val: tiberius::Row) -> Self {
+        HiQueueCount {
+            description: val.get::<&str, &str>("description").unwrap().to_string(),
+            hi_queue_count: val.get("hi_queue_count").unwrap(),
+        }
+    }
+}
+
+impl From<&tiberius::Row> for HiQueueCount {
+    fn from(val: &tiberius::Row) -> Self {
+        HiQueueCount {
+            description: val.get::<&str, &str>("description").unwrap().to_string(),
+            hi_queue_count: val.get("hi_queue_count").unwrap(),
         }
     }
 }

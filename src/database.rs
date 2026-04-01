@@ -81,6 +81,7 @@ async fn get_db_status(
     }
 }
 
+//TODO: Replace this with `get_table_count`
 #[tracing::instrument(name = "Check HI_QUEUE Table", skip_all)]
 pub async fn get_hiqueue_count(pool: DBConnectionPool) -> Result<i32, ApplicationError> {
     let mut client = pool.get().await?;
@@ -107,13 +108,14 @@ pub async fn get_unhealthy_spoolfiles(
         .query("select DESCRP as description, SPOOl_FILE_COUNT as spool_file_count, SPOOL_DIR as directory from CHANNEL where Installed = 'Y' and SPOOl_FILE_COUNT > @P1", &[&limit_per_channel])
         .await?.into_results().await?;
 
-    let spool_file_counts = queryresult[0]
+    let spool_file_counts: Vec<SpoolFileCount> = queryresult[0]
         .iter()
-        .map(|row| SpoolFileCount {
-            description: row.get::<&str, &str>("description").unwrap().to_string(),
-            spool_file_count: row.get("spool_file_count").unwrap(),
-            directory: row.get::<&str, &str>("directory").unwrap().to_string(),
-        })
+        // .map(|row| SpoolFileCount {
+        //     description: row.get::<&str, &str>("description").unwrap().to_string(),
+        //     spool_file_count: row.get("spool_file_count").unwrap(),
+        //     directory: row.get::<&str, &str>("directory").unwrap().to_string(),
+        // })
+        .map(|row| row.into())
         .collect();
 
     Ok(spool_file_counts)

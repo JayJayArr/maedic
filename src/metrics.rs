@@ -1,5 +1,7 @@
 use crate::configuration::DBConnectionPool;
-use crate::database::{get_card_state, get_table_count, get_version_number};
+use crate::database::{
+    get_card_state, get_table_count, get_unhealthy_spoolfiles, get_version_number,
+};
 use crate::error::ApplicationError;
 use crate::run::AppState;
 use axum::body::Body;
@@ -93,6 +95,11 @@ pub struct TableSizeLabels {
 pub struct VersionLabels {
     pub value: VersionComponents,
 }
+/// `SpoolFileLabel` is the displayed label for the Version numbers
+#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+pub struct SpoolFileLabel {
+    pub panel: String,
+}
 
 /// `Metrics` is the complete collection of all exposed metrics
 #[derive(Debug, Default)]
@@ -100,6 +107,7 @@ pub struct Metrics {
     table: Family<TableSizeLabels, Gauge>,
     status: Family<CardStateLabels, Gauge>,
     version: Family<VersionLabels, Gauge>,
+    spool_files: Family<SpoolFileLabel, Gauge>,
 }
 
 impl Metrics {
@@ -118,6 +126,12 @@ impl Metrics {
     pub fn set_version(&self, version: VersionComponents, value: i64) {
         self.version
             .get_or_create(&VersionLabels { value: version })
+            .set(value);
+    }
+
+    pub fn set_spool_file_count(&self, panel: String, value: i64) {
+        self.spool_files
+            .get_or_create(&SpoolFileLabel { panel })
             .set(value);
     }
 }
@@ -141,21 +155,30 @@ pub async fn collect_metrics(
     pool: DBConnectionPool,
     metrics: &Metrics,
 ) -> Result<(), ApplicationError> {
-    //Collect Table sizes
-    for count in TableSizes::iter() {
-        let countvalue = get_table_count(pool.clone(), count.to_string()).await?;
-        metrics.set_table_size(count, countvalue.into());
-    }
-
-    for state in CardStates::iter() {
-        let countvalue = get_card_state(pool.clone(), state.to_string()).await?;
-        metrics.set_card_state(state, countvalue.into());
-    }
+    // Collect Version numbers
     let (major, minor, patch, build_no) = get_version_number(pool.clone()).await?;
     metrics.set_version(VersionComponents::Major, major.into());
     metrics.set_version(VersionComponents::Minor, minor.into());
     metrics.set_version(VersionComponents::Patch, patch.into());
     metrics.set_version(VersionComponents::BuildNo, build_no.into());
+    // Collect Table sizes
+    for count in TableSizes::iter() {
+        let countvalue = get_table_count(pool.clone(), count.to_string()).await?;
+        metrics.set_table_size(count, countvalue.into());
+    }
+
+    // Collect Card Status Metrics
+    for state in CardStates::iter() {
+        let countvalue = get_card_state(pool.clone(), state.to_string()).await?;
+        metrics.set_card_state(state, countvalue.into());
+    }
+
+    // Collect and set spool_file metrics
+    let spool_files = get_unhealthy_spoolfiles(pool.clone(), -1).await?;
+    for spool_file in spool_files {
+        metrics.set_spool_file_count(spool_file.description, spool_file.spool_file_count.into());
+    }
+
     Ok(())
 }
 
@@ -164,6 +187,7 @@ pub async fn setup_metrics_registry() -> (Registry, Metrics) {
         table: Family::default(),
         status: Family::default(),
         version: Family::default(),
+        spool_files: Family::default(),
     };
     let mut registry = Registry::default();
     registry.register(
@@ -177,5 +201,10 @@ pub async fn setup_metrics_registry() -> (Registry, Metrics) {
         metrics.table.clone(),
     );
     registry.register("card_state", "State of cards", metrics.status.clone());
+    registry.register(
+        "spool_files",
+        "Spool files per Channel",
+        metrics.spool_files.clone(),
+    );
     (registry, metrics)
 }

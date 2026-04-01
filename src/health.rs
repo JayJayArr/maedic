@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, sync::Arc};
 use sysinfo::Process;
 use tokio::sync::Mutex;
-use tracing::error;
+use tracing::warn;
 
 /// The Health of Maedic itself
 /// Checks for a healthy Database connection
@@ -101,7 +101,7 @@ pub async fn check_health(
         used_memory_percentage,
     };
     if !health_is_good(&health, &limits) {
-        error!("App reported unhealthy status {:?}", health);
+        warn!("App reported unhealthy status {:?}", health);
         Ok((StatusCode::SERVICE_UNAVAILABLE, Json(health)))
     } else {
         Ok((StatusCode::OK, Json(health)))

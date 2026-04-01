@@ -16,6 +16,19 @@ The following endpoints are available:
 - `/v1/health` for the health of PW
 - `/v1/self` for checking the health of `maedic` itself, also checks the database connection
 - `/v1/config` to check the configured limits and options
+- `/v1/metrics` exposes an endpoint for `Prometheus` Style Metrics
+
+## Metric:
+
+The following Values are provided as Metrics:
+
+- Version and Build Number
+- Number of entries for the most important database tables
+- Status of Cards
+- HI_Queue Size => Queued Actions per Channel
+- Spool_Files => Spool Files waiting for Download for each Channel
+- Installation Status of the Panels
+- Firmware Versions of the Panels
 
 There are multiple options to install:
 

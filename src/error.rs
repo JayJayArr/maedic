@@ -19,6 +19,10 @@ pub enum ApplicationError {
     /// Error during Conversion from a Database Value
     #[error("{0}")]
     Conversion(String),
+
+    /// Error during Conversion from a Database Value
+    #[error("Empty Result received from DB")]
+    EmptyResult,
 }
 
 impl IntoResponse for ApplicationError {
@@ -39,6 +43,13 @@ impl IntoResponse for ApplicationError {
             Self::Conversion(err) => {
                 tracing::error!("{:?}", err);
                 (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+            }
+            Self::EmptyResult => {
+                tracing::error!("Empty Result received from DB");
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Empty Result received from DB".to_string(),
+                )
             }
         };
         (status, message).into_response()

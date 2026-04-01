@@ -16,6 +16,7 @@ pub struct PWHealth {
     pub used_memory_percentage: Option<f32>,
 }
 
+/// Health of the underlying Operating System
 #[derive(Serialize, Clone, Debug)]
 pub struct SystemHealth {
     pub service_state: ServiceState,
@@ -28,11 +29,6 @@ pub struct SpoolFileCount {
     pub spool_file_count: i32,
     pub description: String,
     pub directory: String,
-}
-#[derive(Deserialize, Serialize, Debug, PartialEq)]
-pub struct HiQueueCount {
-    pub hi_queue_count: i32,
-    pub description: String,
 }
 
 impl From<tiberius::Row> for SpoolFileCount {
@@ -53,6 +49,12 @@ impl From<&tiberius::Row> for SpoolFileCount {
             directory: val.get::<&str, &str>("directory").unwrap().to_string(),
         }
     }
+}
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct HiQueueCount {
+    pub hi_queue_count: i32,
+    pub description: String,
 }
 
 impl From<tiberius::Row> for HiQueueCount {

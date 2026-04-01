@@ -72,7 +72,7 @@ async fn get_db_status(
         .await?
         .into_row()
         .await?
-        .unwrap()
+        .ok_or(ApplicationError::EmptyResult)?
         .get::<i32, &str>("connection_state")
         .ok_or(DatabaseConnectionState::Unhealthy)
     {
@@ -108,7 +108,7 @@ pub async fn get_table_count(
         .await?
         .into_row()
         .await?
-        .unwrap()
+        .ok_or(ApplicationError::EmptyResult)?
         .get::<i32, &str>("COUNT")
         .ok_or(ApplicationError::Conversion(
             "Failed to convert COUNT".to_string(),
@@ -130,7 +130,7 @@ pub async fn get_card_state(
         .await?
         .into_row()
         .await?
-        .unwrap()
+        .ok_or(ApplicationError::EmptyResult)?
         .get::<i32, &str>("COUNT")
         .ok_or(ApplicationError::Conversion(
             "Failed to convert COUNT".to_string(),
@@ -148,7 +148,7 @@ pub async fn get_version_number(
         .await?
         .into_row()
         .await?
-        .unwrap()
+        .ok_or(ApplicationError::EmptyResult)?
         .get::<i32, &str>("COUNT")
         .ok_or(ApplicationError::Conversion(
             "Failed to convert COUNT".to_string(),
@@ -161,7 +161,7 @@ pub async fn get_version_number(
             .await?
             .into_row()
             .await?
-            .unwrap();
+            .ok_or(ApplicationError::EmptyResult)?;
 
         let major = result
             .get::<u8, &str>("VER_MAJOR_NUM")
@@ -193,26 +193,40 @@ pub async fn get_hiqueue_count_per_panel(
     pool: DBConnectionPool,
 ) -> Result<Vec<HiQueueCount>, ApplicationError> {
     let mut client = pool.get().await?;
-    let panel_tablesize = client
+    let panel_tablesize = match client
         .simple_query("SELECT COUNT(*) as COUNT FROM Panel")
         .await?
         .into_row()
         .await?
-        .unwrap()
-        .get::<i32, &str>("COUNT")
-        .ok_or(ApplicationError::Conversion(
-            "Failed to convert COUNT".to_string(),
-        ))?;
-    let hi_queue_tablesize = client
+    {
+        Some(result) => result
+            .get::<i32, &str>("COUNT")
+            .ok_or(ApplicationError::Conversion(
+                "Failed to convert COUNT".to_string(),
+            ))?,
+        None => {
+            return Err(ApplicationError::Conversion(
+                "No result received".to_string(),
+            ));
+        }
+    };
+    let hi_queue_tablesize = match client
         .simple_query("SELECT COUNT(*) as COUNT FROM HI_QUEUE")
         .await?
         .into_row()
         .await?
-        .unwrap()
-        .get::<i32, &str>("COUNT")
-        .ok_or(ApplicationError::Conversion(
-            "Failed to convert COUNT".to_string(),
-        ))?;
+    {
+        Some(result) => result
+            .get::<i32, &str>("COUNT")
+            .ok_or(ApplicationError::Conversion(
+                "Failed to convert COUNT".to_string(),
+            ))?,
+        None => {
+            return Err(ApplicationError::Conversion(
+                "No result received".to_string(),
+            ));
+        }
+    };
     if panel_tablesize != 0 && hi_queue_tablesize != 0 {
         let result = client
             .simple_query(

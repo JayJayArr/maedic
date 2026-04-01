@@ -1,6 +1,6 @@
 use crate::{
     configuration::{LimitSettings, SystemState},
-    database::{DatabaseConnectionState, get_hiqueue_count, get_unhealthy_spoolfiles},
+    database::{DatabaseConnectionState, get_table_count, get_unhealthy_spoolfiles},
     error::ApplicationError,
     indicators::{PWHealth, ServiceState},
     run::AppState,
@@ -68,7 +68,7 @@ pub async fn check_health(
     let hi_queue_size = if limits.hi_queue_count == 0 {
         None
     } else {
-        Some(get_hiqueue_count(state.pool.clone()).await?)
+        Some(get_table_count(state.pool.clone(), "hi_queue".to_string()).await?)
     };
     //Spool Files
     let unhealthy_spool_files = if limits.spool_file_count == 0 {

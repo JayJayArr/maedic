@@ -81,23 +81,6 @@ async fn get_db_status(
     }
 }
 
-//TODO: Replace this with `get_table_count`
-#[tracing::instrument(name = "Check HI_QUEUE Table", skip_all)]
-pub async fn get_hiqueue_count(pool: DBConnectionPool) -> Result<i32, ApplicationError> {
-    let mut client = pool.get().await?;
-    let size = client
-        .simple_query("SELECT COUNT(*) as HIQUEUECOUNT FROM HI_QUEUE")
-        .await?
-        .into_row()
-        .await?
-        .unwrap()
-        .get::<i32, &str>("HIQUEUECOUNT")
-        .ok_or(ApplicationError::Conversion(
-            "Failed to convert HIQUEUECOUNT".to_string(),
-        ))?;
-    Ok(size)
-}
-
 #[tracing::instrument(name = "Check unhealthy spoolfiles", skip_all)]
 pub async fn get_unhealthy_spoolfiles(
     pool: DBConnectionPool,
@@ -108,15 +91,8 @@ pub async fn get_unhealthy_spoolfiles(
         .query("select DESCRP as description, SPOOl_FILE_COUNT as spool_file_count, SPOOL_DIR as directory from CHANNEL where Installed = 'Y' and SPOOl_FILE_COUNT > @P1", &[&limit_per_channel])
         .await?.into_results().await?;
 
-    let spool_file_counts: Vec<SpoolFileCount> = queryresult[0]
-        .iter()
-        // .map(|row| SpoolFileCount {
-        //     description: row.get::<&str, &str>("description").unwrap().to_string(),
-        //     spool_file_count: row.get("spool_file_count").unwrap(),
-        //     directory: row.get::<&str, &str>("directory").unwrap().to_string(),
-        // })
-        .map(|row| row.into())
-        .collect();
+    let spool_file_counts: Vec<SpoolFileCount> =
+        queryresult[0].iter().map(|row| row.into()).collect();
 
     Ok(spool_file_counts)
 }
@@ -251,14 +227,7 @@ pub async fn get_hiqueue_count_per_panel(
             .await?
             .into_results()
             .await?;
-        let hi_queue_count: Vec<HiQueueCount> = result[0]
-            .iter()
-            // .map(|row| HiQueueCount {
-            //     description: row.get::<&str, &str>("DESCRP").unwrap().to_string(),
-            //     hi_queue_count: row.get("hi_queue_count").unwrap(),
-            // })
-            .map(|row| row.into())
-            .collect();
+        let hi_queue_count: Vec<HiQueueCount> = result[0].iter().map(|row| row.into()).collect();
         return Ok(hi_queue_count);
     }
     Ok(Vec::new())

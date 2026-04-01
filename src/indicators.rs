@@ -1,3 +1,4 @@
+use prometheus_client::encoding::EncodeLabelSet;
 use serde::{Deserialize, Serialize};
 
 /// Health components of the connected PW instance
@@ -16,6 +17,7 @@ pub struct PWHealth {
     pub used_memory_percentage: Option<f32>,
 }
 
+/// Health of the underlying Operating System
 #[derive(Serialize, Clone, Debug)]
 pub struct SystemHealth {
     pub service_state: ServiceState,
@@ -36,6 +38,88 @@ impl From<tiberius::Row> for SpoolFileCount {
             description: val.get::<&str, &str>("description").unwrap().to_string(),
             spool_file_count: val.get("spool_file_count").unwrap(),
             directory: val.get::<&str, &str>("directory").unwrap().to_string(),
+        }
+    }
+}
+
+impl From<&tiberius::Row> for SpoolFileCount {
+    fn from(val: &tiberius::Row) -> Self {
+        SpoolFileCount {
+            description: val.get::<&str, &str>("description").unwrap().to_string(),
+            spool_file_count: val.get("spool_file_count").unwrap(),
+            directory: val.get::<&str, &str>("directory").unwrap().to_string(),
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct HiQueueCount {
+    pub hi_queue_count: i32,
+    pub description: String,
+}
+
+impl From<tiberius::Row> for HiQueueCount {
+    fn from(val: tiberius::Row) -> Self {
+        HiQueueCount {
+            description: val.get::<&str, &str>("description").unwrap().to_string(),
+            hi_queue_count: val.get("hi_queue_count").unwrap(),
+        }
+    }
+}
+
+impl From<&tiberius::Row> for HiQueueCount {
+    fn from(val: &tiberius::Row) -> Self {
+        HiQueueCount {
+            description: val.get::<&str, &str>("description").unwrap().to_string(),
+            hi_queue_count: val.get("hi_queue_count").unwrap(),
+        }
+    }
+}
+
+#[derive(Default, Deserialize, Serialize, Debug, PartialEq, EncodeLabelSet, Eq, Hash, Clone)]
+pub struct PanelInstalled {
+    pub description: String,
+    pub firmware_major_version: i64,
+    pub firmware_minor_version: i64,
+    pub installed: i64,
+}
+
+impl From<tiberius::Row> for PanelInstalled {
+    fn from(val: tiberius::Row) -> Self {
+        let split: Vec<&str> = val
+            .get::<&str, &str>("firmware_version")
+            .unwrap()
+            .split_terminator(".")
+            .collect();
+        PanelInstalled {
+            description: val.get::<&str, &str>("description").unwrap().to_string(),
+            installed: if val.get::<&str, &str>("installed").unwrap() == "Y" {
+                1
+            } else {
+                0
+            },
+            firmware_major_version: split[0].parse::<i64>().unwrap(),
+            firmware_minor_version: split[1].parse::<i64>().unwrap(),
+        }
+    }
+}
+
+impl From<&tiberius::Row> for PanelInstalled {
+    fn from(val: &tiberius::Row) -> Self {
+        let split: Vec<&str> = val
+            .get::<&str, &str>("firmware_version")
+            .unwrap()
+            .split_terminator(".")
+            .collect();
+        PanelInstalled {
+            description: val.get::<&str, &str>("description").unwrap().to_string(),
+            installed: if val.get::<&str, &str>("installed").unwrap() == "Y" {
+                1
+            } else {
+                0
+            },
+            firmware_major_version: split[0].parse::<i64>().unwrap(),
+            firmware_minor_version: split[1].parse::<i64>().unwrap(),
         }
     }
 }

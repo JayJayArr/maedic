@@ -18,6 +18,7 @@ pub fn get_configuration(name: String) -> Result<Settings, config::ConfigError> 
         .try_deserialize()
 }
 
+/// `Settings` collects the complete Options provided in the config file
 #[derive(Deserialize, Serialize, Clone, Debug, Default)]
 pub struct Settings {
     pub application: ApplicationSettings,
@@ -25,6 +26,7 @@ pub struct Settings {
     pub limits: LimitSettings,
 }
 
+/// Settings for the Application itself
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct ApplicationSettings {
     #[serde(deserialize_with = "deserialize_number_from_string")]
@@ -36,6 +38,7 @@ pub struct ApplicationSettings {
     pub expose_config: bool,
 }
 
+/// Settings for the Database Connection Pool
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct DatabaseSettings {
     pub host: String,
@@ -48,6 +51,8 @@ pub struct DatabaseSettings {
     pub trust_cert: bool,
 }
 
+/// Limits for the `PWHealth` values
+/// Each numeric value is the maximum GOOD condition
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub struct LimitSettings {
     pub hi_queue_count: i32,

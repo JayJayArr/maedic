@@ -1,14 +1,12 @@
+use crate::api::helpers::TestApplication;
 use maedic::{
-    configuration::LimitSettings,
-    database::{DatabaseConnectionState, MaedicHealth},
+    configuration::LimitSettings, database::DatabaseConnectionState, health::MaedicHealth,
     indicators::PWHealth,
 };
 
-use crate::db::helpers::spawn_app;
-
 #[tokio::test]
 async fn test_self_health_works() {
-    let app = spawn_app().await;
+    let app = TestApplication::spawn_app().await;
     let client = reqwest::Client::new();
 
     let response = client
@@ -30,7 +28,7 @@ async fn test_self_health_works() {
 
 #[tokio::test]
 async fn test_config_endpoint_works() {
-    let app = spawn_app().await;
+    let app = TestApplication::spawn_app().await;
     let client = reqwest::Client::new();
 
     let response = client
@@ -48,7 +46,7 @@ async fn test_config_endpoint_works() {
 
 #[tokio::test]
 async fn test_pw_health_endpoint_works_with_db() {
-    let app = spawn_app().await;
+    let app = TestApplication::spawn_app().await;
     let client = reqwest::Client::new();
 
     let response = client

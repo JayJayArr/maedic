@@ -1,25 +1,19 @@
 use maedic::{
     configuration::get_configuration,
     database::setup_database_pool,
+    metrics::setup_metrics_registry,
     run::{AppState, run},
     telemetry::initialize_tracing,
 };
 use std::sync::Arc;
 use sysinfo::System;
 use tokio::sync::Mutex;
-use tracing::info;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let configuration = get_configuration("base".to_string())?;
 
     initialize_tracing(configuration.application.log_level.clone())?;
-
-    info!(
-        "Starting maedic version {} with config: {:?}",
-        env!("CARGO_PKG_VERSION"),
-        configuration
-    );
 
     let listener = tokio::net::TcpListener::bind(format!(
         "{}:{}",
@@ -29,10 +23,13 @@ async fn main() -> anyhow::Result<()> {
     .expect("Could not bind to port");
 
     let pool = setup_database_pool(configuration.database.clone()).await?;
+    let (registry, metrics) = setup_metrics_registry().await;
     let state = AppState {
         pool,
         config: configuration.clone(),
         sys: Arc::new(Mutex::new(System::new_all())),
+        registry,
+        metrics,
     };
 
     run(listener, state, configuration)

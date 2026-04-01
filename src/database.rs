@@ -12,7 +12,7 @@ use crate::{
     configuration::{DBConnectionPool, DatabaseSettings},
     error::ApplicationError,
     health::MaedicHealth,
-    indicators::SpoolFileCount,
+    indicators::{HiQueueCount, SpoolFileCount},
     run::AppState,
 };
 
@@ -208,4 +208,56 @@ pub async fn get_version_number(
         return Ok((major, minor, patch, build_no));
     }
     Ok((0, 0, 0, 0))
+}
+
+#[tracing::instrument(name = "Get Hi_Queue per Panel", skip(pool))]
+pub async fn get_hiqueue_count_per_panel(
+    pool: DBConnectionPool,
+) -> Result<Vec<HiQueueCount>, ApplicationError> {
+    let mut client = pool.get().await?;
+    let panel_tablesize = client
+        .simple_query("SELECT COUNT(*) as COUNT FROM Panel")
+        .await?
+        .into_row()
+        .await?
+        .unwrap()
+        .get::<i32, &str>("COUNT")
+        .ok_or(ApplicationError::Conversion(
+            "Failed to convert COUNT".to_string(),
+        ))?;
+    let hi_queue_tablesize = client
+        .simple_query("SELECT COUNT(*) as COUNT FROM HI_QUEUE")
+        .await?
+        .into_row()
+        .await?
+        .unwrap()
+        .get::<i32, &str>("COUNT")
+        .ok_or(ApplicationError::Conversion(
+            "Failed to convert COUNT".to_string(),
+        ))?;
+    if panel_tablesize != 0 && hi_queue_tablesize != 0 {
+        let result = client
+            .simple_query(
+            "select DESCRP as 'description', COUNT(*) as 'hi_queue_count' from (
+	            select Panel.DESCRP, HI_QUEUE.ID from HI_QUEUE inner join Panel on HI_QUEUE.CPAR2 = Panel.ID
+	            union all
+	            select Panel.Descrp, HI_QUEUE.ID from HI_QUEUE inner join Panel on LEFT(HI_QUEUE.CPAR1,(CHARINDEX(':', CPAR1) + 7)) = PANEL.ID
+
+            ) as interims
+            group by DESCRP"
+            )
+            .await?
+            .into_results()
+            .await?;
+        let hi_queue_count: Vec<HiQueueCount> = result[0]
+            .iter()
+            // .map(|row| HiQueueCount {
+            //     description: row.get::<&str, &str>("DESCRP").unwrap().to_string(),
+            //     hi_queue_count: row.get("hi_queue_count").unwrap(),
+            // })
+            .map(|row| row.into())
+            .collect();
+        return Ok(hi_queue_count);
+    }
+    Ok(Vec::new())
 }

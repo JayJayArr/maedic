@@ -1,6 +1,7 @@
 use crate::configuration::DBConnectionPool;
 use crate::database::{
-    get_card_state, get_table_count, get_unhealthy_spoolfiles, get_version_number,
+    get_card_state, get_hiqueue_count_per_panel, get_table_count, get_unhealthy_spoolfiles,
+    get_version_number,
 };
 use crate::error::ApplicationError;
 use crate::run::AppState;
@@ -95,10 +96,16 @@ pub struct TableSizeLabels {
 pub struct VersionLabels {
     pub value: VersionComponents,
 }
-/// `SpoolFileLabel` is the displayed label for the Version numbers
+/// `SpoolFileLabel` is the displayed label for the Spool Files
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 pub struct SpoolFileLabel {
     pub panel: String,
+}
+
+/// `HiQueueLabel` is the displayed label for the hi_queue counts
+#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+pub struct HiQueueLabel {
+    pub channel: String,
 }
 
 /// `Metrics` is the complete collection of all exposed metrics
@@ -108,6 +115,7 @@ pub struct Metrics {
     status: Family<CardStateLabels, Gauge>,
     version: Family<VersionLabels, Gauge>,
     spool_files: Family<SpoolFileLabel, Gauge>,
+    hi_queue_counts: Family<HiQueueLabel, Gauge>,
 }
 
 impl Metrics {
@@ -132,6 +140,12 @@ impl Metrics {
     pub fn set_spool_file_count(&self, panel: String, value: i64) {
         self.spool_files
             .get_or_create(&SpoolFileLabel { panel })
+            .set(value);
+    }
+
+    pub fn set_hi_queue_count(&self, channel: String, value: i64) {
+        self.hi_queue_counts
+            .get_or_create(&HiQueueLabel { channel })
             .set(value);
     }
 }
@@ -179,6 +193,15 @@ pub async fn collect_metrics(
         metrics.set_spool_file_count(spool_file.description, spool_file.spool_file_count.into());
     }
 
+    // Collect and set hi_queue_counts
+    let hi_queue_counts = get_hiqueue_count_per_panel(pool.clone()).await?;
+    for hi_queue_count in hi_queue_counts {
+        metrics.set_hi_queue_count(
+            hi_queue_count.description,
+            hi_queue_count.hi_queue_count.into(),
+        );
+    }
+
     Ok(())
 }
 
@@ -188,6 +211,7 @@ pub async fn setup_metrics_registry() -> (Registry, Metrics) {
         status: Family::default(),
         version: Family::default(),
         spool_files: Family::default(),
+        hi_queue_counts: Family::default(),
     };
     let mut registry = Registry::default();
     registry.register(
@@ -205,6 +229,11 @@ pub async fn setup_metrics_registry() -> (Registry, Metrics) {
         "spool_files",
         "Spool files per Channel",
         metrics.spool_files.clone(),
+    );
+    registry.register(
+        "hi_queue_counts",
+        "Actions queued per Channel",
+        metrics.hi_queue_counts.clone(),
     );
     (registry, metrics)
 }

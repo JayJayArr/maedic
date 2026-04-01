@@ -135,9 +135,9 @@ impl TestClient {
     }
 
     pub fn new() -> Self {
-        return Self {
+        Self {
             client: reqwest::Client::new(),
-        };
+        }
     }
 }
 

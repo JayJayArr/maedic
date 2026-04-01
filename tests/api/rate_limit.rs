@@ -6,7 +6,7 @@ async fn test_rate_limiter_is_global() {
     let app = TestApplication::spawn_app().await;
     let client = TestClient::new();
 
-    //Create 6 quick requests
+    //Create 5 quick requests
     for _ in 1..5 {
         let response = client.get_endpoint(app.address.clone(), "/v1/health").await;
         assert_eq!(response.status(), 200);
@@ -26,7 +26,7 @@ async fn test_rate_limiter_is_applied_to_endpoint(#[case] endpoint: &str) {
     let app = TestApplication::spawn_app().await;
     let client = TestClient::new();
 
-    //Create 6 quick requests
+    //Create 5 quick requests
     for _ in 1..5 {
         let response = client.get_endpoint(app.address.clone(), endpoint).await;
         assert_eq!(response.status(), 200);

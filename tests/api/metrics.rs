@@ -1,15 +1,11 @@
-use crate::api::helpers::TestApplication;
+use crate::api::helpers::{TestApplication, TestClient};
 
 #[tokio::test]
 async fn test_metrics_database_sizes() {
     let app = TestApplication::spawn_app().await;
-    let client = reqwest::Client::new();
+    let client = TestClient::new();
 
-    let response = client
-        .get(format!("{}/v1/metrics", app.address))
-        .send()
-        .await
-        .expect("Failed to execute request");
+    let response = client.get_endpoint(app.address, "/v1/metrics").await;
 
     assert!(response.status().is_success());
     let text = response
@@ -35,13 +31,9 @@ async fn test_metrics_database_sizes() {
 #[tokio::test]
 async fn test_metrics_card_states() {
     let app = TestApplication::spawn_app().await;
-    let client = reqwest::Client::new();
+    let client = TestClient::new();
 
-    let response = client
-        .get(format!("{}/v1/metrics", app.address))
-        .send()
-        .await
-        .expect("Failed to execute request");
+    let response = client.get_endpoint(app.address, "/v1/metrics").await;
 
     assert!(response.status().is_success());
     let text = response
@@ -53,4 +45,11 @@ async fn test_metrics_card_states() {
 
     assert!(text.contains("Active"));
     assert!(text.contains("Disabled"));
+    assert!(text.contains("AutoDisabled"));
+    assert!(text.contains("Expired"));
+    assert!(text.contains("Lost"));
+    assert!(text.contains("Stolen"));
+    assert!(text.contains("Terminated"));
+    assert!(text.contains("Unaccounted"));
+    assert!(text.contains("Void"));
 }

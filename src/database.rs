@@ -159,3 +159,53 @@ pub async fn get_card_state(
         ))?;
     Ok(size)
 }
+
+#[tracing::instrument(name = "Get Version & build number", skip(pool))]
+pub async fn get_version_number(
+    pool: DBConnectionPool,
+) -> Result<(u8, u8, u8, i32), ApplicationError> {
+    let mut client = pool.get().await?;
+    let tablesize = client
+        .simple_query("SELECT COUNT(*) as COUNT FROM db_version")
+        .await?
+        .into_row()
+        .await?
+        .unwrap()
+        .get::<i32, &str>("COUNT")
+        .ok_or(ApplicationError::Conversion(
+            "Failed to convert COUNT".to_string(),
+        ))?;
+    if tablesize != 0 {
+        let result = client
+            .simple_query(
+                "SELECT VER_MAJOR_NUM, VER_MINOR_NUM, VER_SP_NUM, Build_No FROM db_version",
+            )
+            .await?
+            .into_row()
+            .await?
+            .unwrap();
+
+        let major = result
+            .get::<u8, &str>("VER_MAJOR_NUM")
+            .ok_or(ApplicationError::Conversion(
+                "Failed to convert Version".to_string(),
+            ))?;
+        let minor = result
+            .get::<u8, &str>("VER_MINOR_NUM")
+            .ok_or(ApplicationError::Conversion(
+                "Failed to convert Build_no".to_string(),
+            ))?;
+        let patch = result
+            .get::<u8, &str>("VER_SP_NUM")
+            .ok_or(ApplicationError::Conversion(
+                "Failed to convert Version".to_string(),
+            ))?;
+        let build_no = result
+            .get::<i32, &str>("Build_No")
+            .ok_or(ApplicationError::Conversion(
+                "Failed to convert Build_no".to_string(),
+            ))?;
+        return Ok((major, minor, patch, build_no));
+    }
+    Ok((0, 0, 0, 0))
+}

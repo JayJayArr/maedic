@@ -1,5 +1,5 @@
 use crate::configuration::DBConnectionPool;
-use crate::database::{get_card_state, get_table_count};
+use crate::database::{get_card_state, get_table_count, get_version_number};
 use crate::error::ApplicationError;
 use crate::run::AppState;
 use axum::body::Body;
@@ -66,6 +66,16 @@ pub enum CardStates {
     Void,
 }
 
+/// `CardStates` lists the possible States of a saved card
+/// e.g. `Active` or `Disabled`, each state being saved as a single char in the db
+#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelValue, EnumIter)]
+pub enum VersionComponents {
+    Major,
+    Minor,
+    Patch,
+    BuildNo,
+}
+
 /// `CardStateLabels`` is the displayed label for each Metric in the family
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 pub struct CardStateLabels {
@@ -78,11 +88,18 @@ pub struct TableSizeLabels {
     pub table: TableSizes,
 }
 
+/// `VersionLabels` is the displayed label for the Version numbers
+#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+pub struct VersionLabels {
+    pub value: VersionComponents,
+}
+
 /// `Metrics` is the complete collection of all exposed metrics
 #[derive(Debug, Default)]
 pub struct Metrics {
     table: Family<TableSizeLabels, Gauge>,
     status: Family<CardStateLabels, Gauge>,
+    version: Family<VersionLabels, Gauge>,
 }
 
 impl Metrics {
@@ -95,6 +112,12 @@ impl Metrics {
     pub fn set_card_state(&self, state: CardStates, value: i64) {
         self.status
             .get_or_create(&CardStateLabels { status: state })
+            .set(value);
+    }
+
+    pub fn set_version(&self, version: VersionComponents, value: i64) {
+        self.version
+            .get_or_create(&VersionLabels { value: version })
             .set(value);
     }
 }
@@ -128,6 +151,11 @@ pub async fn collect_metrics(
         let countvalue = get_card_state(pool.clone(), state.to_string()).await?;
         metrics.set_card_state(state, countvalue.into());
     }
+    let (major, minor, patch, build_no) = get_version_number(pool.clone()).await?;
+    metrics.set_version(VersionComponents::Major, major.into());
+    metrics.set_version(VersionComponents::Minor, minor.into());
+    metrics.set_version(VersionComponents::Patch, patch.into());
+    metrics.set_version(VersionComponents::BuildNo, build_no.into());
     Ok(())
 }
 
@@ -135,8 +163,14 @@ pub async fn setup_metrics_registry() -> (Registry, Metrics) {
     let metrics = Metrics {
         table: Family::default(),
         status: Family::default(),
+        version: Family::default(),
     };
     let mut registry = Registry::default();
+    registry.register(
+        "pw_version_number",
+        "Version numbers",
+        metrics.version.clone(),
+    );
     registry.register(
         "tablesize",
         "Number of database objects",

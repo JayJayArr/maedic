@@ -24,6 +24,8 @@ RUN apt-get update -y \
   && apt-get clean -y \
   # Install curl for self health check
   && apt-get -y install curl \
+  # Install libkrb5-dev for integrated auth via libgssapi
+  && apt-get -y install libkrb5-dev \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder  /app/target/release/maedic maedic

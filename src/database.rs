@@ -1,19 +1,14 @@
-use axum::{Json, extract::State};
 use bb8::Pool;
 use bb8_tiberius::ConnectionManager;
 use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use tiberius::{AuthMethod, Config};
 use tokio::net::TcpStream;
-use tokio::sync::Mutex;
 
 use crate::{
     configuration::{DBConnectionPool, DatabaseSettings},
     error::ApplicationError,
-    health::MaedicHealth,
     indicators::{HiQueueCount, PanelInstalled, SpoolFileCount},
-    run::AppState,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -49,20 +44,8 @@ pub async fn setup_database_pool(
     Ok(pool)
 }
 
-#[tracing::instrument(name = "Check self health", skip(state))]
-pub async fn self_health(State(state): State<Arc<Mutex<AppState>>>) -> Json<MaedicHealth> {
-    let state = state.lock().await;
-    match get_db_status(state.pool.clone()).await {
-        Ok(state) => match state {
-            DatabaseConnectionState::Healthy => Json(MaedicHealth::healthy()),
-            DatabaseConnectionState::Unhealthy => Json(MaedicHealth::unhealthy()),
-        },
-        Err(_) => Json(MaedicHealth::unhealthy()),
-    }
-}
-
 #[tracing::instrument(name = "check database connection", skip(pool))]
-async fn get_db_status(
+pub async fn get_db_status(
     pool: DBConnectionPool,
 ) -> Result<DatabaseConnectionState, ApplicationError> {
     match pool

@@ -1,5 +1,10 @@
+use axum::http::StatusCode;
+use axum::response::IntoResponse;
 use prometheus_client::encoding::EncodeLabelSet;
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
+
+use crate::database::DatabaseConnectionState;
 
 /// Health components of the connected PW instance
 ///
@@ -15,6 +20,52 @@ pub struct PWHealth {
     pub service_state: Option<ServiceState>,
     pub global_cpu_usage_percentage: Option<f32>,
     pub used_memory_percentage: Option<f32>,
+    pub maedic_health: MaedicHealth,
+}
+
+/// The Health of Maedic itself
+/// Checks for a healthy Database connection
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct MaedicHealth {
+    pub database_connection: DatabaseConnectionState,
+    pub version_number: String,
+}
+
+/// Default values for MaedicHealth
+impl MaedicHealth {
+    pub fn healthy() -> Self {
+        Self {
+            database_connection: DatabaseConnectionState::Healthy,
+            version_number: env!("CARGO_PKG_VERSION").to_string(),
+        }
+    }
+
+    pub fn unhealthy() -> Self {
+        Self {
+            database_connection: DatabaseConnectionState::Unhealthy,
+            version_number: env!("CARGO_PKG_VERSION").to_string(),
+        }
+    }
+}
+
+impl IntoResponse for MaedicHealth {
+    fn into_response(self) -> axum::response::Response {
+        match self.database_connection {
+            DatabaseConnectionState::Healthy => (StatusCode::OK, self.to_string()).into_response(),
+            DatabaseConnectionState::Unhealthy => {
+                (StatusCode::SERVICE_UNAVAILABLE, self.to_string()).into_response()
+            }
+        }
+    }
+}
+
+impl Display for MaedicHealth {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.database_connection {
+            DatabaseConnectionState::Healthy => write!(f, "database_connection: healthy"),
+            DatabaseConnectionState::Unhealthy => write!(f, "database_connection: unhealthy"),
+        }
+    }
 }
 
 /// Health of the underlying Operating System

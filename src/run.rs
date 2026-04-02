@@ -1,6 +1,5 @@
 use crate::{
     configuration::{DBConnectionPool, Settings, SystemState},
-    database::self_health,
     health::{check_health, get_config_handler},
     metrics::{Metrics, metrics_handler},
 };
@@ -50,7 +49,6 @@ pub async fn run(
     let app = Router::new()
         .route("/v1/health", get(check_health))
         .route("/v1/config", get(get_config_handler))
-        .route("/v1/self", get(self_health))
         .route("/v1/metrics", get(metrics_handler))
         .with_state(Arc::new(Mutex::new(state)))
         .layer(GovernorLayer::new(governor_conf))

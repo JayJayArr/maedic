@@ -20,7 +20,6 @@ async fn test_rate_limiter_is_global() {
 #[case("/v1/health")]
 #[case("/v1/metrics")]
 #[case("/v1/config")]
-#[case("/v1/self")]
 #[tokio::test]
 async fn test_rate_limiter_is_applied_to_endpoint(#[case] endpoint: &str) {
     let app = TestApplication::spawn_app().await;

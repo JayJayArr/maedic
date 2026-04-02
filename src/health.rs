@@ -1,61 +1,15 @@
 use crate::{
     configuration::{LimitSettings, SystemState},
-    database::{DatabaseConnectionState, get_table_count, get_unhealthy_spoolfiles},
+    database::{DatabaseConnectionState, get_db_status, get_table_count, get_unhealthy_spoolfiles},
     error::ApplicationError,
-    indicators::{PWHealth, ServiceState},
+    indicators::{MaedicHealth, PWHealth, ServiceState},
     run::AppState,
 };
-use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
-use serde::{Deserialize, Serialize};
-use std::{fmt::Display, sync::Arc};
+use axum::{Json, extract::State, http::StatusCode};
+use std::sync::Arc;
 use sysinfo::Process;
 use tokio::sync::Mutex;
 use tracing::warn;
-
-/// The Health of Maedic itself
-/// Checks for a healthy Database connection
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct MaedicHealth {
-    pub database_connection: DatabaseConnectionState,
-    pub version_number: String,
-}
-
-/// Default values for MaedicHealth
-impl MaedicHealth {
-    pub fn healthy() -> Self {
-        Self {
-            database_connection: DatabaseConnectionState::Healthy,
-            version_number: env!("CARGO_PKG_VERSION").to_string(),
-        }
-    }
-
-    pub fn unhealthy() -> Self {
-        Self {
-            database_connection: DatabaseConnectionState::Unhealthy,
-            version_number: env!("CARGO_PKG_VERSION").to_string(),
-        }
-    }
-}
-
-impl IntoResponse for MaedicHealth {
-    fn into_response(self) -> axum::response::Response {
-        match self.database_connection {
-            DatabaseConnectionState::Healthy => (StatusCode::OK, self.to_string()).into_response(),
-            DatabaseConnectionState::Unhealthy => {
-                (StatusCode::SERVICE_UNAVAILABLE, self.to_string()).into_response()
-            }
-        }
-    }
-}
-
-impl Display for MaedicHealth {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self.database_connection {
-            DatabaseConnectionState::Healthy => write!(f, "database_connection: healthy"),
-            DatabaseConnectionState::Unhealthy => write!(f, "database_connection: unhealthy"),
-        }
-    }
-}
 
 /// Handler to check the Health of PW
 #[tracing::instrument(name = "check PW health", skip_all)]
@@ -93,12 +47,21 @@ pub async fn check_health(
         Some(get_ram_load(&state.sys).await)
     };
 
+    let maedic_health = match get_db_status(state.pool.clone()).await {
+        Ok(state) => match state {
+            DatabaseConnectionState::Healthy => MaedicHealth::healthy(),
+            DatabaseConnectionState::Unhealthy => MaedicHealth::unhealthy(),
+        },
+        Err(_) => MaedicHealth::unhealthy(),
+    };
+
     let health = PWHealth {
         unhealthy_spool_files,
         hi_queue_size,
         service_state,
         global_cpu_usage_percentage,
         used_memory_percentage,
+        maedic_health,
     };
     if !health_is_good(&health, &limits) {
         warn!("App reported unhealthy status {:?}", health);
@@ -203,6 +166,10 @@ mod tests {
                 service_state: Some(ServiceState::Up),
                 global_cpu_usage_percentage: Some(5.0),
                 used_memory_percentage: Some(5.0),
+                maedic_health: MaedicHealth {
+                    database_connection: DatabaseConnectionState::Healthy,
+                    version_number: env!("CARGO_PKG_VERSION").to_string(),
+                },
             }
         }
     }

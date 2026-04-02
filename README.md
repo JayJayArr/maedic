@@ -18,7 +18,7 @@ The following endpoints are available:
 - `/v1/config` to check the configured limits and options
 - `/v1/metrics` exposes an endpoint for `Prometheus` Style Metrics
 
-## Metric:
+## Metrics:
 
 The following Values are provided as Metrics:
 

@@ -13,8 +13,7 @@ Currently featuring the following PW specific checks:
 
 The following endpoints are available:
 
-- `/v1/health` for the health of PW
-- `/v1/self` for checking the health of `maedic` itself, also checks the database connection
+- `/v1/health` for the health of PW, checking the database connection at the same time
 - `/v1/config` to check the configured limits and options
 - `/v1/metrics` exposes an endpoint for `Prometheus` Style Metrics
 

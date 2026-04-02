@@ -6,7 +6,7 @@ use tiberius::{AuthMethod, Config};
 use tokio::net::TcpStream;
 
 use crate::{
-    configuration::{DBConnectionPool, DatabaseSettings},
+    configuration::{DBAuthMethod, DBConnectionPool, DatabaseSettings},
     error::ApplicationError,
     health::{HiQueueCount, PanelInstalled, SpoolFileCount},
 };
@@ -23,12 +23,9 @@ pub async fn setup_database_pool(
 ) -> Result<Pool<ConnectionManager>, tiberius::error::Error> {
     let mut config = Config::new();
 
+    setup_auth(db_config.clone(), &mut config);
     config.host(db_config.host);
     config.port(db_config.port);
-    config.authentication(AuthMethod::sql_server(
-        db_config.username,
-        db_config.password.expose_secret(),
-    ));
     if db_config.trust_cert {
         config.trust_cert();
     }
@@ -42,6 +39,33 @@ pub async fn setup_database_pool(
     let pool = bb8::Pool::builder().max_size(2).build(mgr).await.unwrap();
 
     Ok(pool)
+}
+#[cfg(target_os = "windows")]
+fn setup_auth(db_config: DatabaseSettings, pool_config: &mut Config) {
+    match db_config.auth_method {
+        DBAuthMethod::Basic => {
+            pool_config.authentication(AuthMethod::sql_server(
+                db_config.username,
+                db_config.password.expose_secret(),
+            ));
+        }
+        DBAuthMethod::Windows => {
+            pool_config.authentication(AuthMethod::Windows);
+        }
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn setup_auth(db_config: DatabaseSettings, pool_config: &mut Config) {
+    match db_config.auth_method {
+        DBAuthMethod::Basic => {
+            pool_config.authentication(AuthMethod::sql_server(
+                db_config.username,
+                db_config.password.expose_secret(),
+            ));
+        }
+        _ => panic!("only basic auth is currently supported on linux"),
+    }
 }
 
 #[tracing::instrument(name = "check database connection", skip(pool))]

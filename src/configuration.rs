@@ -44,6 +44,7 @@ pub struct DatabaseSettings {
     pub host: String,
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
+    pub auth_method: DBAuthMethod,
     pub username: String,
     #[serde(skip_serializing)]
     pub password: SecretString,
@@ -62,12 +63,19 @@ pub struct LimitSettings {
     pub check_local_service: bool,
 }
 
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub enum DBAuthMethod {
+    Basic,
+    Windows,
+}
+
 impl Default for DatabaseSettings {
     fn default() -> Self {
         Self {
             port: 1433,
             host: "0.0.0.0".to_string(),
             username: "sa".into(),
+            auth_method: DBAuthMethod::Basic,
             password: "Charlie".into(),
             database_name: "PWNT".into(),
             trust_cert: true,

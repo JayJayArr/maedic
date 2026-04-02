@@ -49,3 +49,22 @@ async fn test_pw_health_endpoint_works_with_db() {
     };
     assert_eq!(json, perfect_health)
 }
+
+#[tokio::test]
+async fn test_version_number_is_correct() {
+    let app = TestApplication::spawn_app().await;
+    let client = reqwest::Client::new();
+
+    let response = client
+        .get(format!("{}/v1/health", app.address))
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert!(response.status().is_success());
+
+    let version_number = env!("CARGO_PKG_VERSION").to_string();
+    let text = response.text().await.unwrap();
+
+    assert!(text.contains(&version_number))
+}

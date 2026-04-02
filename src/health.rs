@@ -152,9 +152,10 @@ impl From<tiberius::Row> for PanelInstalled {
     fn from(val: tiberius::Row) -> Self {
         let split: Vec<&str> = val
             .get::<&str, &str>("firmware_version")
-            .unwrap()
+            .unwrap_or_default()
             .split_terminator(".")
             .collect();
+        let mut iter = split.iter();
         PanelInstalled {
             description: val
                 .get::<&str, &str>("description")
@@ -165,8 +166,16 @@ impl From<tiberius::Row> for PanelInstalled {
             } else {
                 0
             },
-            firmware_major_version: split[0].parse::<i64>().unwrap_or_default(),
-            firmware_minor_version: split[1].parse::<i64>().unwrap_or_default(),
+            firmware_major_version: iter
+                .next()
+                .unwrap_or(&"0")
+                .parse::<i64>()
+                .unwrap_or_default(),
+            firmware_minor_version: iter
+                .next()
+                .unwrap_or(&"0")
+                .parse::<i64>()
+                .unwrap_or_default(),
         }
     }
 }
@@ -178,6 +187,7 @@ impl From<&tiberius::Row> for PanelInstalled {
             .unwrap_or_default()
             .split_terminator(".")
             .collect();
+        let mut iter = split.iter();
         PanelInstalled {
             description: val
                 .get::<&str, &str>("description")
@@ -188,8 +198,16 @@ impl From<&tiberius::Row> for PanelInstalled {
             } else {
                 0
             },
-            firmware_major_version: split[0].parse::<i64>().unwrap_or_default(),
-            firmware_minor_version: split[1].parse::<i64>().unwrap_or_default(),
+            firmware_major_version: iter
+                .next()
+                .unwrap_or(&"0")
+                .parse::<i64>()
+                .unwrap_or_default(),
+            firmware_minor_version: iter
+                .next()
+                .unwrap_or(&"0")
+                .parse::<i64>()
+                .unwrap_or_default(),
         }
     }
 }

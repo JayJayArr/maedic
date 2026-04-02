@@ -6,6 +6,7 @@ use crate::database::{
 use crate::error::ApplicationError;
 use crate::run::AppState;
 use axum::body::Body;
+use axum::http::header::CONTENT_TYPE;
 use axum::http::{Response, StatusCode};
 use axum::{extract::State, response::IntoResponse};
 use prometheus_client::encoding::text::encode;
@@ -179,6 +180,7 @@ pub async fn metrics_handler(State(state): State<Arc<Mutex<AppState>>>) -> impl 
     encode(&mut buffer, &state.registry).unwrap();
     Response::builder()
         .status(StatusCode::OK)
+        .header(CONTENT_TYPE, "text/plain; version=0.0.4; charset=utf-8")
         .body(Body::from(buffer))
         .unwrap()
 }

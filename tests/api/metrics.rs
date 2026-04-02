@@ -74,3 +74,16 @@ async fn test_metrics_version_numbers() {
     assert!(text.contains("Patch"));
     assert!(text.contains("BuildNo"));
 }
+
+#[tokio::test]
+async fn test_metrics_content_type() {
+    let app = TestApplication::spawn_app().await;
+    let client = TestClient::new();
+
+    let response = client.get_endpoint(app.address, "/v1/metrics").await;
+
+    assert!(response.status().is_success());
+    let headermap = response.headers();
+    let content_type = headermap.get("content-type").unwrap();
+    assert_eq!(content_type, "text/plain; version=0.0.4; charset=utf-8");
+}

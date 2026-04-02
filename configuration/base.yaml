@@ -11,15 +11,18 @@ database:
   # host: 172.17.0.2 # this example might be helpful when using docker
   host: localhost
   port: 1433
-  auth_method: Basic #Change this to "Windows" to use Windows auth or "Integrated" to use Integrated auth
+  # Authentication Method: Basic, Windows, Integrated
+  # Change this to "Windows" to use Windows auth or "Integrated" to use Integrated auth
+  # When Using "Integrated" the username and password are ignored and Integrated auth is used
+  auth_method: Basic
   username: sa
   password: "Charlie 13"
   database_name: PWNT
   trust_cert: true
 limits:
+  check_local_service: true
   # set any value to 0 to deactivate the check
   hi_queue_count: 1000
   spool_file_count: 10 #max no of spool files acceptable for a healthy channel
   max_ram_percentage: 80.0
   max_cpu_percentage: 80.0
-  check_local_service: true

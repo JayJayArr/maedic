@@ -34,6 +34,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/install-action@nextest
       - uses: Swatinem/rust-cache@v2
+      - name: install libkrb5-dev
+        run: apt-get -y install libkrb5-dev
       - name: Compile
         run: cargo check --locked
       - name: Test
@@ -48,5 +50,7 @@ jobs:
         with:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
+      - name: install libkrb5-dev
+        run: apt-get -y install libkrb5-dev
       - name: Run cargo clippy (deny warnings)
         run: make lint

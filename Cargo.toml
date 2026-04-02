@@ -23,7 +23,7 @@ serde = "1.0.228"
 serde-aux = "4.7.0"
 sysinfo = "0.38.4"
 thiserror = "2.0.18"
-tiberius = {version = "0.12.3", features = ["rustls", "winauth"], default-features = false}
+tiberius = {version = "0.12.3", features = ["rustls", "winauth", "integrated-auth-gssapi"], default-features = false}
 tokio = {version = "1.50.0", features = ["rt-multi-thread", "macros"]}
 tokio-util = { version = "0.7.18", features = ["compat"]}
 tower_governor = "0.8.0"

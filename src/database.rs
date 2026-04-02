@@ -55,6 +55,9 @@ fn setup_auth(db_config: DatabaseSettings, pool_config: &mut Config) {
                 db_config.password.expose_secret(),
             ));
         }
+        DBAuthMethod::Integrated => {
+            pool_config.authentication(AuthMethod::Integrated);
+        }
     }
 }
 
@@ -67,7 +70,10 @@ fn setup_auth(db_config: DatabaseSettings, pool_config: &mut Config) {
                 db_config.password.expose_secret(),
             ));
         }
-        _ => panic!("only basic auth is currently supported on linux"),
+        DBAuthMethod::Integrated => {
+            pool_config.authentication(AuthMethod::Integrated);
+        }
+        _ => panic!("only basic and integrated auth are supported on linux"),
     }
 }
 

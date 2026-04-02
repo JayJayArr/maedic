@@ -67,6 +67,7 @@ pub struct LimitSettings {
 pub enum DBAuthMethod {
     Basic,
     Windows,
+    Integrated,
 }
 
 impl Default for DatabaseSettings {

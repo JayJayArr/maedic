@@ -11,7 +11,7 @@ database:
   # host: 172.17.0.2 # this example might be helpful when using docker
   host: localhost
   port: 1433
-  auth_method: Basic #Change this to "Windows" to use Windows builtin authentication, only available on Windows
+  auth_method: Basic #Change this to "Windows" to use Windows auth, to use Integrated auth use "Integrated"
   username: sa
   password: "Charlie 13"
   database_name: PWNT

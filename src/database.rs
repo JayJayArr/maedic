@@ -50,7 +50,10 @@ fn setup_auth(db_config: DatabaseSettings, pool_config: &mut Config) {
             ));
         }
         DBAuthMethod::Windows => {
-            pool_config.authentication(AuthMethod::Windows);
+            pool_config.authentication(AuthMethod::windows(
+                db_config.username,
+                db_config.password.expose_secret(),
+            ));
         }
     }
 }

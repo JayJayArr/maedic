@@ -2,7 +2,7 @@ use crate::api::helpers::TestApplication;
 use maedic::{
     configuration::LimitSettings,
     database::DatabaseConnectionState,
-    indicators::{MaedicHealth, PWHealth},
+    health::{MaedicHealth, PWHealth},
 };
 
 #[tokio::test]

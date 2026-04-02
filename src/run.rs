@@ -1,6 +1,6 @@
 use crate::{
+    checks::{check_health, get_config_handler},
     configuration::{DBConnectionPool, Settings, SystemState},
-    health::{check_health, get_config_handler},
     metrics::{Metrics, metrics_handler},
 };
 use axum::{

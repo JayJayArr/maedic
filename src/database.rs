@@ -8,7 +8,7 @@ use tokio::net::TcpStream;
 use crate::{
     configuration::{DBConnectionPool, DatabaseSettings},
     error::ApplicationError,
-    indicators::{HiQueueCount, PanelInstalled, SpoolFileCount},
+    health::{HiQueueCount, PanelInstalled, SpoolFileCount},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

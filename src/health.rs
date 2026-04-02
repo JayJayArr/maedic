@@ -97,9 +97,15 @@ impl From<tiberius::Row> for SpoolFileCount {
 impl From<&tiberius::Row> for SpoolFileCount {
     fn from(val: &tiberius::Row) -> Self {
         SpoolFileCount {
-            description: val.get::<&str, &str>("description").unwrap().to_string(),
-            spool_file_count: val.get("spool_file_count").unwrap(),
-            directory: val.get::<&str, &str>("directory").unwrap().to_string(),
+            description: val
+                .get::<&str, &str>("description")
+                .unwrap_or_default()
+                .to_string(),
+            spool_file_count: val.get("spool_file_count").unwrap_or_default(),
+            directory: val
+                .get::<&str, &str>("directory")
+                .unwrap_or_default()
+                .to_string(),
         }
     }
 }
@@ -113,8 +119,11 @@ pub struct HiQueueCount {
 impl From<tiberius::Row> for HiQueueCount {
     fn from(val: tiberius::Row) -> Self {
         HiQueueCount {
-            description: val.get::<&str, &str>("description").unwrap().to_string(),
-            hi_queue_count: val.get("hi_queue_count").unwrap(),
+            description: val
+                .get::<&str, &str>("description")
+                .unwrap_or_default()
+                .to_string(),
+            hi_queue_count: val.get("hi_queue_count").unwrap_or_default(),
         }
     }
 }
@@ -122,8 +131,11 @@ impl From<tiberius::Row> for HiQueueCount {
 impl From<&tiberius::Row> for HiQueueCount {
     fn from(val: &tiberius::Row) -> Self {
         HiQueueCount {
-            description: val.get::<&str, &str>("description").unwrap().to_string(),
-            hi_queue_count: val.get("hi_queue_count").unwrap(),
+            description: val
+                .get::<&str, &str>("description")
+                .unwrap_or_default()
+                .to_string(),
+            hi_queue_count: val.get("hi_queue_count").unwrap_or_default(),
         }
     }
 }
@@ -144,14 +156,17 @@ impl From<tiberius::Row> for PanelInstalled {
             .split_terminator(".")
             .collect();
         PanelInstalled {
-            description: val.get::<&str, &str>("description").unwrap().to_string(),
-            installed: if val.get::<&str, &str>("installed").unwrap() == "Y" {
+            description: val
+                .get::<&str, &str>("description")
+                .unwrap_or_default()
+                .to_string(),
+            installed: if val.get::<&str, &str>("installed").unwrap_or_default() == "Y" {
                 1
             } else {
                 0
             },
-            firmware_major_version: split[0].parse::<i64>().unwrap(),
-            firmware_minor_version: split[1].parse::<i64>().unwrap(),
+            firmware_major_version: split[0].parse::<i64>().unwrap_or_default(),
+            firmware_minor_version: split[1].parse::<i64>().unwrap_or_default(),
         }
     }
 }
@@ -160,18 +175,21 @@ impl From<&tiberius::Row> for PanelInstalled {
     fn from(val: &tiberius::Row) -> Self {
         let split: Vec<&str> = val
             .get::<&str, &str>("firmware_version")
-            .unwrap()
+            .unwrap_or_default()
             .split_terminator(".")
             .collect();
         PanelInstalled {
-            description: val.get::<&str, &str>("description").unwrap().to_string(),
-            installed: if val.get::<&str, &str>("installed").unwrap() == "Y" {
+            description: val
+                .get::<&str, &str>("description")
+                .unwrap_or_default()
+                .to_string(),
+            installed: if val.get::<&str, &str>("installed").unwrap_or_default() == "Y" {
                 1
             } else {
                 0
             },
-            firmware_major_version: split[0].parse::<i64>().unwrap(),
-            firmware_minor_version: split[1].parse::<i64>().unwrap(),
+            firmware_major_version: split[0].parse::<i64>().unwrap_or_default(),
+            firmware_minor_version: split[1].parse::<i64>().unwrap_or_default(),
         }
     }
 }

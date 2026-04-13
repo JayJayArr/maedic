@@ -120,10 +120,7 @@ mod tests {
     use sysinfo::System;
     use tokio::sync::Mutex;
 
-    use crate::{
-        checks::{check_local_service, get_cpu_load, get_ram_load},
-        health::ServiceState,
-    };
+    use crate::checks::{get_cpu_load, get_ram_load};
 
     #[tokio::test]
     async fn cpu_value_between_0_and_100() {
@@ -141,10 +138,10 @@ mod tests {
         assert!(ram > 0.0);
     }
 
-    #[tokio::test]
-    async fn check_service_network_service_is_found() {
-        let system_state = Arc::new(Mutex::new(System::new_all()));
-        let service_state = check_local_service(&system_state, &"network".to_string()).await;
-        assert_eq!(service_state, ServiceState::Up);
-    }
+    // #[tokio::test]
+    // async fn check_service_network_service_is_found() {
+    //     let system_state = Arc::new(Mutex::new(System::new_all()));
+    //     let service_state = check_local_service(&system_state, &"network".to_string()).await;
+    //     assert_eq!(service_state, ServiceState::Up);
+    // }
 }

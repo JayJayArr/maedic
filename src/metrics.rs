@@ -153,7 +153,7 @@ impl Metrics {
             .set(value);
     }
 
-    pub fn set_hi_queue_count(&self, channel: String, value: i64) {
+    pub fn set_hi_queue_count_for_panel(&self, channel: String, value: i64) {
         self.hi_queue_counts
             .get_or_create(&HiQueueLabel { channel })
             .set(value);
@@ -218,7 +218,7 @@ pub async fn collect_metrics(
     // Collect and set hi_queue_counts
     let hi_queue_counts = get_hiqueue_count_per_panel(pool.clone()).await?;
     for hi_queue_count in hi_queue_counts {
-        metrics.set_hi_queue_count(
+        metrics.set_hi_queue_count_for_panel(
             hi_queue_count.description,
             hi_queue_count.hi_queue_count.into(),
         );

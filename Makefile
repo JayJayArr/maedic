@@ -10,7 +10,7 @@ test: ## Run all tests
 
 .PHONY: testcov
 testcov: ## Check and open testcoverage
-	cargo llvm-cov --html --open
+	cargo llvm-cov nextest --html --open
 
 .PHONY: build
 build: ## Create release binary

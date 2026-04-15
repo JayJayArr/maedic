@@ -1,8 +1,11 @@
-use crate::api::helpers::{TestApplication, TestClient};
+use crate::api::helpers::{DbVersion, TestApplication, TestClient};
+use rstest::rstest;
 
 #[tokio::test]
-async fn test_metrics_database_sizes() {
-    let app = TestApplication::spawn_app().await;
+#[rstest]
+#[case(DbVersion::V652)]
+async fn test_metrics_database_sizes(#[case] db_version: DbVersion) {
+    let app = TestApplication::spawn_app(db_version).await;
     let client = TestClient::new();
 
     let response = client.get_endpoint(app.address, "/v1/metrics").await;
@@ -29,8 +32,10 @@ async fn test_metrics_database_sizes() {
 }
 
 #[tokio::test]
-async fn test_metrics_card_states() {
-    let app = TestApplication::spawn_app().await;
+#[rstest]
+#[case(DbVersion::V652)]
+async fn test_metrics_card_states(#[case] db_version: DbVersion) {
+    let app = TestApplication::spawn_app(db_version).await;
     let client = TestClient::new();
 
     let response = client.get_endpoint(app.address, "/v1/metrics").await;
@@ -55,8 +60,10 @@ async fn test_metrics_card_states() {
 }
 
 #[tokio::test]
-async fn test_metrics_version_numbers() {
-    let app = TestApplication::spawn_app().await;
+#[rstest]
+#[case(DbVersion::V652)]
+async fn test_metrics_version_numbers(#[case] db_version: DbVersion) {
+    let app = TestApplication::spawn_app(db_version).await;
     let client = TestClient::new();
 
     let response = client.get_endpoint(app.address, "/v1/metrics").await;
@@ -76,8 +83,10 @@ async fn test_metrics_version_numbers() {
 }
 
 #[tokio::test]
-async fn test_metrics_content_type() {
-    let app = TestApplication::spawn_app().await;
+#[rstest]
+#[case(DbVersion::V652)]
+async fn test_metrics_content_type(#[case] db_version: DbVersion) {
+    let app = TestApplication::spawn_app(db_version).await;
     let client = TestClient::new();
 
     let response = client.get_endpoint(app.address, "/v1/metrics").await;

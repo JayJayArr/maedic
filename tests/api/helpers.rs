@@ -29,6 +29,7 @@ pub struct TestApplication {
     pub address: String,
     pub pool: DBConnectionPool,
     pub config: Settings,
+    pub db_version: DbVersion,
 }
 
 static TRACING: Lazy<()> = Lazy::new(|| {
@@ -36,7 +37,7 @@ static TRACING: Lazy<()> = Lazy::new(|| {
 });
 
 impl TestApplication {
-    pub async fn spawn_app() -> TestApplication {
+    pub async fn spawn_app(db_version: DbVersion) -> TestApplication {
         Lazy::force(&TRACING);
 
         let configuration = {
@@ -50,7 +51,7 @@ impl TestApplication {
         create_database(&configuration.database, creation_client).await;
 
         let mut migration_client = create_db_client(&configuration.database, true).await;
-        configure_database(&mut migration_client, DbVersion::V652).await;
+        configure_database(&mut migration_client, db_version.clone()).await;
 
         let pool = setup_database_pool(configuration.database.clone())
             .await
@@ -65,6 +66,7 @@ impl TestApplication {
             pool,
             address,
             config: configuration,
+            db_version,
         };
         let _handle = tokio::spawn(application.run_until_stopped());
         app
@@ -194,6 +196,7 @@ pub async fn create_database(
     client.close().await.unwrap();
 }
 
+#[derive(Clone, Debug)]
 pub enum DbVersion {
     V652,
     V66,

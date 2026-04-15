@@ -1,13 +1,16 @@
-use crate::api::helpers::TestApplication;
+use crate::api::helpers::{DbVersion, TestApplication};
 use maedic::{
     configuration::LimitSettings,
     database::DatabaseConnectionState,
     health::{MaedicHealth, PWHealth},
 };
+use rstest::rstest;
 
 #[tokio::test]
-async fn test_config_endpoint_works() {
-    let app = TestApplication::spawn_app().await;
+#[rstest]
+#[case(DbVersion::V652)]
+async fn test_config_endpoint_works(#[case] db_version: DbVersion) {
+    let app = TestApplication::spawn_app(db_version).await;
     let client = reqwest::Client::new();
 
     let response = client
@@ -24,8 +27,10 @@ async fn test_config_endpoint_works() {
 }
 
 #[tokio::test]
-async fn test_pw_health_endpoint_works_with_db() {
-    let app = TestApplication::spawn_app().await;
+#[rstest]
+#[case(DbVersion::V652)]
+async fn test_pw_health_endpoint_works_with_db(#[case] db_version: DbVersion) {
+    let app = TestApplication::spawn_app(db_version).await;
     let client = reqwest::Client::new();
 
     let response = client
@@ -51,8 +56,10 @@ async fn test_pw_health_endpoint_works_with_db() {
 }
 
 #[tokio::test]
-async fn test_version_number_is_correct() {
-    let app = TestApplication::spawn_app().await;
+#[rstest]
+#[case(DbVersion::V652)]
+async fn test_version_number_is_correct(#[case] db_version: DbVersion) {
+    let app = TestApplication::spawn_app(db_version).await;
     let client = reqwest::Client::new();
 
     let response = client

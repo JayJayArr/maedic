@@ -13,7 +13,7 @@ name = "maedic"
 
 [dependencies]
 anyhow = "1.0.102"
-axum = {version = "0.8.8", features = ["tokio", "macros", "json"]}
+axum = {version = "0.8.9", features = ["tokio", "macros", "json"]}
 bb8 = "0.9.1"
 bb8-tiberius = "0.16.0"
 config = {version = "0.15.22", features = ["yaml"]}
@@ -24,7 +24,7 @@ serde-aux = "4.7.0"
 sysinfo = "0.38.4"
 thiserror = "2.0.18"
 tiberius = {version = "0.12.3", features = ["rustls", "winauth", "integrated-auth-gssapi"], default-features = false}
-tokio = {version = "1.51.0", features = ["rt-multi-thread", "macros"]}
+tokio = {version = "1.52.0", features = ["rt-multi-thread", "macros"]}
 tokio-util = { version = "0.7.18", features = ["compat"]}
 tower_governor = "0.8.0"
 tower-http = {version = "0.6.8", features= ["trace", "request-id"]}

@@ -143,7 +143,7 @@ impl TestClient {
 
 mod embedded {
     use refinery::embed_migrations;
-    embed_migrations!("migrations");
+    embed_migrations!("tests/migrations");
 }
 
 pub async fn configure_database(mut client: Client<Compat<tokio::net::TcpStream>>) {

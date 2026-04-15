@@ -249,28 +249,32 @@ pub async fn setup_metrics_registry() -> (Registry, Metrics) {
     };
     let mut registry = Registry::default();
     registry.register(
-        "pw_version_number",
+        "maedic_pw_version_number",
         "Version numbers",
         metrics.version.clone(),
     );
     registry.register(
-        "tablesize",
+        "maedic_tablesize",
         "Number of database objects",
         metrics.table.clone(),
     );
-    registry.register("card_state", "State of cards", metrics.status.clone());
     registry.register(
-        "spool_files",
+        "maedic_card_state",
+        "State of cards",
+        metrics.status.clone(),
+    );
+    registry.register(
+        "maedic_spool_files",
         "Spool files per Channel",
         metrics.spool_files.clone(),
     );
     registry.register(
-        "hi_queue_counts",
+        "maedic_hi_queue_counts",
         "Actions queued per Channel",
         metrics.hi_queue_counts.clone(),
     );
     registry.register(
-        "panel_installed",
+        "maedic_panel_installed",
         "Installation Status of each Panel, 1=UP, 0=DOWN",
         metrics.panel_installed.clone(),
     );

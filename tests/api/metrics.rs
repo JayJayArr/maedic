@@ -13,7 +13,7 @@ async fn test_metrics_database_sizes() {
         .await
         .expect("Could not convert response to text");
 
-    assert!(text.contains("# HELP tablesize Number of database objects."));
+    assert!(text.contains("# HELP maedic_tablesize Number of database objects."));
 
     assert!(text.contains("Badges"));
     assert!(text.contains("Cards"));
@@ -41,7 +41,7 @@ async fn test_metrics_card_states() {
         .await
         .expect("Could not convert response to text");
 
-    assert!(text.contains("# HELP card_state State of cards."));
+    assert!(text.contains("# HELP maedic_card_state State of cards."));
 
     assert!(text.contains("Active"));
     assert!(text.contains("Disabled"));
@@ -67,7 +67,7 @@ async fn test_metrics_version_numbers() {
         .await
         .expect("Could not convert response to text");
 
-    assert!(text.contains("# HELP pw_version_number Version numbers."));
+    assert!(text.contains("# HELP maedic_pw_version_number Version numbers."));
 
     assert!(text.contains("Major"));
     assert!(text.contains("Minor"));

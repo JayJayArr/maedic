@@ -50,7 +50,7 @@ impl TestApplication {
         create_database(&configuration.database, creation_client).await;
 
         let mut migration_client = create_db_client(&configuration.database, true).await;
-        configure_database(&mut migration_client).await;
+        configure_database(&mut migration_client, DbVersion::V652).await;
 
         let pool = setup_database_pool(configuration.database.clone())
             .await
@@ -144,11 +144,6 @@ impl TestClient {
     }
 }
 
-mod embedded {
-    use refinery::embed_migrations;
-    embed_migrations!("tests/migrations");
-}
-
 pub async fn create_db_client(
     db_config: &DatabaseSettings,
     set_db_name: bool,
@@ -174,11 +169,20 @@ pub async fn create_db_client(
         .unwrap()
 }
 
-pub async fn configure_database(client: &mut Client<Compat<tokio::net::TcpStream>>) {
-    embedded::migrations::runner()
-        .run_async(client)
-        .await
-        .unwrap();
+pub async fn configure_database(
+    client: &mut Client<Compat<tokio::net::TcpStream>>,
+    db_version: DbVersion,
+) {
+    match db_version {
+        DbVersion::V652 => {
+            refinery::embed_migrations!("tests/migrations/V652");
+            migrations::runner().run_async(client).await.unwrap();
+        }
+        DbVersion::V66 => {
+            refinery::embed_migrations!("tests/migrations/V652");
+            migrations::runner().run_async(client).await.unwrap();
+        }
+    }
 }
 
 pub async fn create_database(
@@ -188,4 +192,9 @@ pub async fn create_database(
     let query = format!("CREATE DATABASE \"{}\"", db_config.database_name);
     client.execute(query, &[]).await.unwrap();
     client.close().await.unwrap();
+}
+
+pub enum DbVersion {
+    V652,
+    V66,
 }

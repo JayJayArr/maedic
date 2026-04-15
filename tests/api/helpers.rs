@@ -46,8 +46,11 @@ impl TestApplication {
             c.application.port = 0;
             c
         };
+        let creation_client = create_db_client(&configuration.database, false).await;
+        create_database(&configuration.database, creation_client).await;
 
-        create_database(&configuration.database).await;
+        let mut migration_client = create_db_client(&configuration.database, true).await;
+        configure_database(&mut migration_client).await;
 
         let pool = setup_database_pool(configuration.database.clone())
             .await
@@ -146,14 +149,10 @@ mod embedded {
     embed_migrations!("tests/migrations");
 }
 
-pub async fn configure_database(mut client: Client<Compat<tokio::net::TcpStream>>) {
-    embedded::migrations::runner()
-        .run_async(&mut client)
-        .await
-        .unwrap();
-}
-
-pub async fn create_database(db_config: &DatabaseSettings) {
+pub async fn create_db_client(
+    db_config: &DatabaseSettings,
+    set_db_name: bool,
+) -> Client<Compat<tokio::net::TcpStream>> {
     let mut config = Config::new();
 
     config.host(db_config.host.clone());
@@ -162,25 +161,31 @@ pub async fn create_database(db_config: &DatabaseSettings) {
         db_config.username.clone(),
         db_config.password.expose_secret(),
     ));
+    if set_db_name {
+        config.database(db_config.database_name.clone());
+    }
     if db_config.trust_cert {
         config.trust_cert();
     }
-    {
-        let tcp = TcpStream::connect(config.get_addr()).await.unwrap();
-        tcp.set_nodelay(true).unwrap();
-        let mut client = Client::connect(config.clone(), tcp.compat_write())
-            .await
-            .unwrap();
-
-        let query = format!("CREATE DATABASE \"{}\"", db_config.database_name);
-        client.execute(query, &[]).await.unwrap();
-        client.close().await.unwrap();
-    }
-    config.database(db_config.database_name.clone());
     let tcp = TcpStream::connect(config.get_addr()).await.unwrap();
-    let client = Client::connect(config.clone(), tcp.compat_write())
+    tcp.set_nodelay(true).unwrap();
+    Client::connect(config.clone(), tcp.compat_write())
+        .await
+        .unwrap()
+}
+
+pub async fn configure_database(client: &mut Client<Compat<tokio::net::TcpStream>>) {
+    embedded::migrations::runner()
+        .run_async(client)
         .await
         .unwrap();
+}
 
-    configure_database(client).await;
+pub async fn create_database(
+    db_config: &DatabaseSettings,
+    mut client: Client<Compat<tokio::net::TcpStream>>,
+) {
+    let query = format!("CREATE DATABASE \"{}\"", db_config.database_name);
+    client.execute(query, &[]).await.unwrap();
+    client.close().await.unwrap();
 }

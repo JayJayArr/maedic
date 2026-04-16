@@ -1,0 +1,15 @@
+/*****  Object:  UserDefinedDataType [dbo].[MICBINID]    Script Date: 16.04.2026 12:13:46 ******/CREATE TYPE [dbo ].[MICBINID ]
+FROM
+  [VARBINARY ](18) NOT NULL/*****  Object:  UserDefinedDataType [dbo].[MICCARD]    Script Date: 16.04.2026 12:13:46 ******/CREATE TYPE [dbo ].[MICCARD ]
+FROM
+  [nvarchar ](32) NOT NULL/*****  Object:  UserDefinedDataType [dbo].[MICDESCRP]    Script Date: 16.04.2026 12:13:46 ******/CREATE TYPE [dbo ].[MICDESCRP ]
+FROM
+  [nvarchar ](40) NOT NULL/*****  Object:  UserDefinedDataType [dbo].[MICHWDESCRP]    Script Date: 16.04.2026 12:13:46 ******/CREATE TYPE [dbo ].[MICHWDESCRP ]
+FROM
+  [nvarchar ](80) NULL/*****  Object:  UserDefinedDataType [dbo].[MICID]    Script Date: 16.04.2026 12:13:46 ******/CREATE TYPE [dbo ].[MICID ]
+FROM
+  [nvarchar ](64) NOT NULL/*****  Object:  UserDefinedDataType [dbo].[MICIDSUPER]    Script Date: 16.04.2026 12:13:46 ******/CREATE TYPE [dbo ].[MICIDSUPER ]
+FROM
+  [VARBINARY ](128) NULL/*****  Object:  UserDefinedDataType [dbo].[SURVFILENAME]    Script Date: 16.04.2026 12:13:46 ******/CREATE TYPE [dbo ].[SURVFILENAME ]
+FROM
+  [nvarchar ](260) NULL

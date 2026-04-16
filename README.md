@@ -24,7 +24,7 @@ The following endpoints are available:
 
 The following Values are provided as Metrics:
 
-- Version and Build Number
+- Version and Build Number as denoted in the db
 - Number of entries for the most important database tables
 - Status of Cards
 - HI_Queue Size => Queued Actions per Channel

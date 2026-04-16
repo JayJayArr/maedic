@@ -180,8 +180,8 @@ pub async fn configure_database(
             refinery::embed_migrations!("tests/migrations/V652");
             migrations::runner().run_async(client).await.unwrap();
         }
-        DbVersion::V66 => {
-            refinery::embed_migrations!("tests/migrations/V652");
+        DbVersion::V66SP1 => {
+            refinery::embed_migrations!("tests/migrations/V66SP1");
             migrations::runner().run_async(client).await.unwrap();
         }
     }
@@ -199,5 +199,5 @@ pub async fn create_database(
 #[derive(Clone, Debug)]
 pub enum DbVersion {
     V652,
-    V66,
+    V66SP1,
 }

@@ -3,7 +3,8 @@ use rstest::rstest;
 
 #[tokio::test]
 #[rstest]
-#[case(DbVersion::V652)]
+#[case(DbVersion::V652SP1)]
+#[case(DbVersion::V66SP1)]
 async fn test_metrics_database_sizes(#[case] db_version: DbVersion) {
     let app = TestApplication::spawn_app(db_version).await;
     let client = TestClient::new();
@@ -33,7 +34,8 @@ async fn test_metrics_database_sizes(#[case] db_version: DbVersion) {
 
 #[tokio::test]
 #[rstest]
-#[case(DbVersion::V652)]
+#[case(DbVersion::V652SP1)]
+#[case(DbVersion::V66SP1)]
 async fn test_metrics_card_states(#[case] db_version: DbVersion) {
     let app = TestApplication::spawn_app(db_version).await;
     let client = TestClient::new();
@@ -61,7 +63,8 @@ async fn test_metrics_card_states(#[case] db_version: DbVersion) {
 
 #[tokio::test]
 #[rstest]
-#[case(DbVersion::V652)]
+#[case(DbVersion::V652SP1)]
+#[case(DbVersion::V66SP1)]
 async fn test_metrics_version_numbers(#[case] db_version: DbVersion) {
     let app = TestApplication::spawn_app(db_version).await;
     let client = TestClient::new();
@@ -84,7 +87,8 @@ async fn test_metrics_version_numbers(#[case] db_version: DbVersion) {
 
 #[tokio::test]
 #[rstest]
-#[case(DbVersion::V652)]
+#[case(DbVersion::V652SP1)]
+#[case(DbVersion::V66SP1)]
 async fn test_metrics_content_type(#[case] db_version: DbVersion) {
     let app = TestApplication::spawn_app(db_version).await;
     let client = TestClient::new();

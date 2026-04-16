@@ -3,7 +3,7 @@ use rstest::rstest;
 
 #[tokio::test]
 async fn test_rate_limiter_is_global() {
-    let app = TestApplication::spawn_app(DbVersion::V652).await;
+    let app = TestApplication::spawn_app(DbVersion::V652SP1).await;
     let client = TestClient::new();
 
     //Create 5 quick requests
@@ -22,7 +22,7 @@ async fn test_rate_limiter_is_global() {
 #[case("/v1/config")]
 #[tokio::test]
 async fn test_rate_limiter_is_applied_to_endpoint(#[case] endpoint: &str) {
-    let app = TestApplication::spawn_app(DbVersion::V652).await;
+    let app = TestApplication::spawn_app(DbVersion::V652SP1).await;
     let client = TestClient::new();
 
     //Create 5 quick requests

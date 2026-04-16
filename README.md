@@ -2,7 +2,10 @@
 
 ![Tests](https://img.shields.io/github/actions/workflow/status/JayJayArr/maedic/ci.yml)
 
-Service to monitor a PW-installation for its health. Latest tested version : `6.5.2`
+Service to monitor a PW-installation for its health.
+The Following Versions are supported: 
+- `6.5.2 SP1`
+- `6.6 SP1`
 
 Currently featuring the following PW specific checks:
 

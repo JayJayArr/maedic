@@ -26,7 +26,7 @@ async fn test_metrics_database_sizes(#[case] db_version: DbVersion) {
     assert!(text.contains("Subpanels"));
     assert!(text.contains("Readers"));
     assert!(text.contains("HiQueue"));
-    assert!(text.contains("UnackAlarms"));
+    assert!(text.contains("UnacknowledgedAlarms"));
     assert!(text.contains("Events"));
     assert!(text.contains("Users"));
     assert!(text.contains("Workstations"));

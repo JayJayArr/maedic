@@ -29,20 +29,32 @@ impl IntoResponse for ApplicationError {
     fn into_response(self) -> axum::response::Response {
         let (status, message) = match self {
             Self::Unexpected(err) => {
-                tracing::error!("{:?}", err);
-                (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+                tracing::error!("Unexpexted Error{:?}", err);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("Unexpected Error: {:?}", err.to_string()),
+                )
             }
             Self::Database(err) => {
-                tracing::error!("{:?}", err);
-                (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+                tracing::error!("Database Error: {:?}", err);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("Database Error: {:?}", err.to_string()),
+                )
             }
             Self::DatabaseConnection(err) => {
-                tracing::error!("{:?}", err);
-                (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+                tracing::error!("Database Connection Error: {:?}", err);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("Database Connection Error: {:?}", err.to_string()),
+                )
             }
             Self::Conversion(err) => {
                 tracing::error!("{:?}", err);
-                (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("Conversion Error: {:?}", err.to_string()),
+                )
             }
             Self::EmptyResult => {
                 tracing::error!("Empty Result received from DB");

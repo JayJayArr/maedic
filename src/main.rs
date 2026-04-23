@@ -13,7 +13,10 @@ use tokio::sync::Mutex;
 async fn main() -> anyhow::Result<()> {
     let configuration = get_configuration("base".to_string())?;
 
-    initialize_tracing(configuration.application.log_level.clone())?;
+    initialize_tracing(
+        configuration.application.log_level.clone(),
+        configuration.application.logfile_path.clone(),
+    )?;
 
     let listener = tokio::net::TcpListener::bind(format!(
         "{}:{}",

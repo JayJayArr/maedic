@@ -33,7 +33,7 @@ pub struct TestApplication {
 }
 
 static TRACING: Lazy<()> = Lazy::new(|| {
-    initialize_tracing("info".to_string()).unwrap();
+    initialize_tracing("info".to_string(), "maedic.log".to_string()).unwrap();
 });
 
 impl TestApplication {

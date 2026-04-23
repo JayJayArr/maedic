@@ -50,14 +50,23 @@ mod tests {
     #[case("info")]
     #[case("debug")]
     #[case("trace")]
+    #[case("ERROR")]
+    #[case("WARN")]
+    #[case("INFO")]
+    #[case("DEBUG")]
+    #[case("TRACE")]
     fn test_log_level_is_accepted(#[case] log_level: String) {
         assert!(initialize_tracing(log_level, "maedic.log".to_string()).is_ok())
     }
 
-    #[test]
-    fn test_reject_wrong_log_level() {
-        assert!(
-            initialize_tracing("weird_log_level".to_string(), "maedic.log".to_string()).is_err()
-        )
+    #[rstest]
+    #[case("logs")]
+    #[case("warnings")]
+    #[case("errors")]
+    #[case("traces")]
+    #[case("infos")]
+    #[case("debugs")]
+    fn test_reject_wrong_log_level(#[case] log_level: String) {
+        assert!(initialize_tracing(log_level, "maedic.log".to_string()).is_err())
     }
 }

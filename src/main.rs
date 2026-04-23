@@ -25,7 +25,9 @@ async fn main() -> anyhow::Result<()> {
     .await
     .expect("Could not bind to port");
 
-    let pool = setup_database_pool(configuration.database.clone()).await?;
+    let pool = setup_database_pool(configuration.database.clone())
+        .await
+        .expect("Could not establish database connection");
     let (registry, metrics) = setup_metrics_registry().await;
     let state = AppState {
         pool,

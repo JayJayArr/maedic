@@ -50,7 +50,7 @@ mod tests {
     #[case("info")]
     #[case("debug")]
     #[case("trace")]
-    fn test_log_file_is_accepted(#[case] log_level: String) {
+    fn test_log_level_is_accepted(#[case] log_level: String) {
         assert!(initialize_tracing(log_level, "maedic.log".to_string()).is_ok())
     }
 

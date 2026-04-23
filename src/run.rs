@@ -1,7 +1,7 @@
 use crate::{
-    checks::{check_health, get_config_handler},
     configuration::{DBConnectionPool, Settings, SystemState},
-    metrics::{Metrics, metrics_handler},
+    handler::{check_health, get_config_handler, metrics_handler},
+    metrics::Metrics,
 };
 use axum::{
     Router,

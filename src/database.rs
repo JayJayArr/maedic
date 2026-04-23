@@ -36,7 +36,7 @@ pub async fn setup_database_pool(
     let tcp = TcpStream::connect(config.get_addr()).await?;
     tcp.set_nodelay(true)?;
     let mgr = bb8_tiberius::ConnectionManager::build(config).unwrap();
-    let pool = bb8::Pool::builder().max_size(2).build(mgr).await.unwrap();
+    let pool = bb8::Pool::builder().max_size(5).build(mgr).await.unwrap();
 
     Ok(pool)
 }

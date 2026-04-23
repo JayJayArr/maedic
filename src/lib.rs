@@ -2,6 +2,7 @@ pub mod checks;
 pub mod configuration;
 pub mod database;
 pub mod error;
+pub mod handler;
 pub mod health;
 pub mod metrics;
 pub mod run;

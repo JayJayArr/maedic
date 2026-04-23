@@ -4,24 +4,18 @@ use crate::database::{
     get_unhealthy_spoolfiles, get_version_number,
 };
 use crate::error::ApplicationError;
-use crate::run::AppState;
-use axum::body::Body;
-use axum::http::header::CONTENT_TYPE;
-use axum::http::{Response, StatusCode};
-use axum::{extract::State, response::IntoResponse};
-use prometheus_client::encoding::text::encode;
 use prometheus_client::encoding::{EncodeLabelSet, EncodeLabelValue};
 use prometheus_client::metrics::family::Family;
 use prometheus_client::metrics::gauge::Gauge;
 use prometheus_client::registry::Registry;
-use std::sync::Arc;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
-use tokio::sync::Mutex;
 
 /// `TableSizes` lists the Tables where the size is used in the metrics
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelValue, EnumIter, strum_macros::Display)]
 pub enum TableSizes {
+    #[strum(to_string = "audit_log")]
+    AuditChanges,
     #[strum(to_string = "badge")]
     Badges,
     #[strum(to_string = "badge_c")]
@@ -30,18 +24,30 @@ pub enum TableSizes {
     Panels,
     #[strum(to_string = "channel")]
     Channels,
-    #[strum(to_string = "spanel")]
-    Subpanels,
     #[strum(to_string = "reader")]
     Readers,
+    #[strum(to_string = "input")]
+    Inputs,
+    #[strum(to_string = "output")]
+    Outputs,
+    #[strum(to_string = "logical_dev")]
+    LogicalDevices,
+    #[strum(to_string = "company")]
+    Companies,
+    #[strum(to_string = "clear")]
+    ClearanceCodes,
     #[strum(to_string = "hi_queue")]
     HiQueue,
     #[strum(to_string = "unack_Al")]
-    UnackAlarms,
+    UnacknowledgedAlarms,
     #[strum(to_string = "ev_log")]
     Events,
+    #[strum(to_string = "parti")]
+    Partitions,
     #[strum(to_string = "uid")]
-    Users,
+    SoftwareUsers,
+    #[strum(to_string = "spanel")]
+    Subpanels,
     #[strum(to_string = "wrkst")]
     Workstations,
 }
@@ -168,21 +174,6 @@ impl Metrics {
             })
             .set(installed);
     }
-}
-
-#[tracing::instrument(name = "Scrape metrics", skip(state))]
-pub async fn metrics_handler(State(state): State<Arc<Mutex<AppState>>>) -> impl IntoResponse {
-    let state = state.lock().await;
-    collect_metrics(state.pool.clone(), &state.metrics)
-        .await
-        .unwrap();
-    let mut buffer = String::new();
-    encode(&mut buffer, &state.registry).unwrap();
-    Response::builder()
-        .status(StatusCode::OK)
-        .header(CONTENT_TYPE, "text/plain; version=0.0.4; charset=utf-8")
-        .body(Body::from(buffer))
-        .unwrap()
 }
 
 #[tracing::instrument(name = "Collect metrics", skip(pool, metrics))]

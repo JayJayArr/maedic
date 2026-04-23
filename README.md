@@ -3,7 +3,8 @@
 ![Tests](https://img.shields.io/github/actions/workflow/status/JayJayArr/maedic/ci.yml)
 
 Service to monitor a PW-installation for its health.
-The Following Versions are supported: 
+The Following Versions are supported:
+
 - `6.5.2 SP1`
 - `6.6 SP1`
 
@@ -37,7 +38,7 @@ There are multiple options to install:
 ## Docker
 
 > [!WARNING]
-> When using Docker the local Service can not be checked, disable the check via `check_local_service: true` in the base.yaml file.
+> When using Docker the local Service can not be checked, disable the check via `check_local_service: false` in the base.yaml file.
 
 ### Prerequisites
 

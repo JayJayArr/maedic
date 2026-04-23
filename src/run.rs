@@ -1,5 +1,5 @@
 use crate::{
-    configuration::{DBConnectionPool, Settings, SystemState},
+    configuration::{DBConnectionPool, Settings},
     handler::{check_health, get_config_handler, metrics_handler},
     metrics::Metrics,
 };
@@ -11,6 +11,7 @@ use axum::{
 use axum::{routing::get, serve::Serve};
 use prometheus_client::registry::Registry;
 use std::{net::SocketAddr, sync::Arc};
+use sysinfo::System;
 use tokio::{net::TcpListener, sync::Mutex};
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
 use tower_http::trace::TraceLayer;
@@ -21,7 +22,7 @@ use tracing::{info, info_span};
 pub struct AppState {
     pub pool: DBConnectionPool,
     pub config: Settings,
-    pub sys: SystemState,
+    pub sys: System,
     pub registry: Registry,
     pub metrics: Metrics,
 }

@@ -14,12 +14,10 @@ use maedic::{
 use once_cell::sync::Lazy;
 use secrecy::ExposeSecret;
 use std::net::SocketAddr;
-use std::sync::Arc;
 use sysinfo::System;
 use tiberius::{AuthMethod, Client, Config};
 use tokio::net::TcpListener;
 use tokio::net::TcpStream;
-use tokio::sync::Mutex;
 use tokio_util::compat::{Compat, TokioAsyncWriteCompatExt};
 use tracing::info;
 use uuid::Uuid;
@@ -106,7 +104,7 @@ impl TestServer {
             AppState {
                 pool: connection_pool,
                 config: configuration.clone(),
-                sys: Arc::new(Mutex::new(System::new_all())),
+                sys: System::new_all(),
                 registry,
                 metrics,
             },

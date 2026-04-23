@@ -4,9 +4,6 @@ use config::Config;
 use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use serde_aux::field_attributes::deserialize_number_from_string;
-use std::sync::Arc;
-use sysinfo::System;
-use tokio::sync::Mutex;
 
 pub fn get_configuration(name: String) -> Result<Settings, config::ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine current directory.");
@@ -110,4 +107,3 @@ impl Default for ApplicationSettings {
 }
 
 pub type DBConnectionPool = Pool<ConnectionManager>;
-pub type SystemState = Arc<Mutex<System>>;

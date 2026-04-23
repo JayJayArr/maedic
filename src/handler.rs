@@ -23,7 +23,7 @@ use crate::{
 pub async fn check_health(
     State(state): State<Arc<Mutex<AppState>>>,
 ) -> Result<(StatusCode, Json<PWHealth>), ApplicationError> {
-    let state = state.lock().await;
+    let mut state = state.lock().await;
     let limits = state.config.limits.clone();
     // HI_QUEUE
     let hi_queue_size = if limits.hi_queue_count == 0 {
@@ -37,6 +37,7 @@ pub async fn check_health(
     } else {
         Some(get_unhealthy_spoolfiles(state.pool.clone(), limits.spool_file_count).await?)
     };
+    state.sys.refresh_all();
     let service_state = if !limits.check_local_service {
         None
     } else {

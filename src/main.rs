@@ -5,9 +5,7 @@ use maedic::{
     run::{AppState, run},
     telemetry::initialize_tracing,
 };
-use std::sync::Arc;
 use sysinfo::System;
-use tokio::sync::Mutex;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -32,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
     let state = AppState {
         pool,
         config: configuration.clone(),
-        sys: Arc::new(Mutex::new(System::new_all())),
+        sys: System::new_all(),
         registry,
         metrics,
     };

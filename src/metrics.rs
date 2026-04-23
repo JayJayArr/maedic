@@ -5,6 +5,7 @@ use crate::database::{
 };
 use crate::error::ApplicationError;
 use prometheus_client::encoding::{EncodeLabelSet, EncodeLabelValue};
+use prometheus_client::metrics::counter::Counter;
 use prometheus_client::metrics::family::Family;
 use prometheus_client::metrics::gauge::Gauge;
 use prometheus_client::registry::Registry;
@@ -123,6 +124,20 @@ pub struct PanelInstalledLabel {
     pub minor_version: i64,
 }
 
+/// `MethodLabel` is the displayed label for the requests to maedic itself
+#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+pub struct EndpointLabels {
+    pub endpoint: Endpoint,
+}
+
+/// The Endpoints of maedic
+#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelValue)]
+pub enum Endpoint {
+    Health,
+    Metrics,
+    Config,
+}
+
 /// `Metrics` is the complete collection of all exposed metrics
 #[derive(Debug, Default)]
 pub struct Metrics {
@@ -132,6 +147,7 @@ pub struct Metrics {
     spool_files: Family<SpoolFileLabel, Gauge>,
     hi_queue_counts: Family<HiQueueLabel, Gauge>,
     panel_installed: Family<PanelInstalledLabel, Gauge>,
+    maedic_requests: Family<EndpointLabels, Counter>,
 }
 
 impl Metrics {
@@ -173,6 +189,11 @@ impl Metrics {
                 minor_version: minor,
             })
             .set(installed);
+    }
+    pub fn inc_requests(&self, endpoint: Endpoint) {
+        self.maedic_requests
+            .get_or_create(&EndpointLabels { endpoint })
+            .inc();
     }
 }
 
@@ -237,6 +258,7 @@ pub async fn setup_metrics_registry() -> (Registry, Metrics) {
         spool_files: Family::default(),
         hi_queue_counts: Family::default(),
         panel_installed: Family::default(),
+        maedic_requests: Family::default(),
     };
     let mut registry = Registry::default();
     registry.register(
@@ -268,6 +290,11 @@ pub async fn setup_metrics_registry() -> (Registry, Metrics) {
         "maedic_panel_installed",
         "Installation Status of each Panel, 1=UP, 0=DOWN",
         metrics.panel_installed.clone(),
+    );
+    registry.register(
+        "maedic_requests_received",
+        "Requests to maedic itself",
+        metrics.maedic_requests.clone(),
     );
     (registry, metrics)
 }

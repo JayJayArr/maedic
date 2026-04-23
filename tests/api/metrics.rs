@@ -112,6 +112,31 @@ async fn test_metrics_panel_installed(#[case] db_version: DbVersion) {
 #[rstest]
 #[case(DbVersion::V652SP1)]
 #[case(DbVersion::V66SP1)]
+async fn test_metrics_maedic_requests(#[case] db_version: DbVersion) {
+    let app = TestApplication::spawn_app(db_version).await;
+    let client = TestClient::new();
+
+    let _ = client.get_endpoint(app.address.clone(), "/v1/config").await;
+    let _ = client.get_endpoint(app.address.clone(), "/v1/health").await;
+    let response = client.get_endpoint(app.address, "/v1/metrics").await;
+
+    assert!(response.status().is_success());
+    let text = response
+        .text()
+        .await
+        .expect("Could not convert response to text");
+
+    assert!(text.contains("# HELP maedic_requests_received Requests to maedic itself"));
+
+    assert!(text.contains("Metrics"));
+    assert!(text.contains("Health"));
+    assert!(text.contains("Config"));
+}
+
+#[tokio::test]
+#[rstest]
+#[case(DbVersion::V652SP1)]
+#[case(DbVersion::V66SP1)]
 async fn test_metrics_content_type(#[case] db_version: DbVersion) {
     let app = TestApplication::spawn_app(db_version).await;
     let client = TestClient::new();

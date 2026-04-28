@@ -8,6 +8,10 @@ test: ## Run all tests
 	cargo nextest run
 	cargo test --doc
 
+.PHONY: unittest
+unittest: ## Run unittest
+	cargo nextest run tests
+
 .PHONY: testcov
 testcov: ## Check and open testcoverage
 	cargo llvm-cov nextest --html --open

@@ -27,3 +27,7 @@ doc: ## Build and open docs
 .PHONY: docker
 docker: ## Build docker image
 	docker build -t "maedic" .
+
+.PHONY: update
+update: ## Update all dependencies
+	cargo upgrade && cargo update

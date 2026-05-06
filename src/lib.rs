@@ -5,5 +5,6 @@ pub mod error;
 pub mod handler;
 pub mod health;
 pub mod metrics;
+pub mod model;
 pub mod run;
 pub mod telemetry;

@@ -24,10 +24,10 @@ serde-aux = "4.7.0"
 sysinfo = "0.38.4"
 thiserror = "2.0.18"
 tiberius = {version = "0.12.3", features = ["rustls", "winauth", "integrated-auth-gssapi"], default-features = false}
-tokio = {version = "1.52.2", features = ["rt-multi-thread", "macros"]}
+tokio = {version = "1.52.3", features = ["rt-multi-thread", "macros"]}
 tokio-util = { version = "0.7.18", features = ["compat"]}
 tower_governor = "0.8.0"
-tower-http = {version = "0.6.9", features= ["trace", "request-id"]}
+tower-http = {version = "0.6.10", features= ["trace", "request-id"]}
 tracing = {version="0.1.44", features = ["std", "attributes"]}
 tracing-subscriber = {version = "0.3.23", features = ["json", "std", "env-filter", "registry", "fmt"]}
 uuid = {version = "1.23.1", features = ["v4"]}

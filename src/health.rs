@@ -36,14 +36,14 @@ pub struct MaedicHealth {
 
 /// Default values for MaedicHealth
 impl MaedicHealth {
-    pub fn healthy() -> Self {
+    pub(crate) fn healthy() -> Self {
         Self {
             database_connection: DatabaseConnectionState::Healthy,
             version_number: env!("CARGO_PKG_VERSION").to_string(),
         }
     }
 
-    pub fn unhealthy() -> Self {
+    pub(crate) fn unhealthy() -> Self {
         Self {
             database_connection: DatabaseConnectionState::Unhealthy,
             version_number: env!("CARGO_PKG_VERSION").to_string(),
@@ -74,9 +74,9 @@ impl Display for MaedicHealth {
 /// Health of the underlying Operating System
 #[derive(Serialize, Clone, Debug)]
 pub struct SystemHealth {
-    pub service_state: ServiceState,
-    pub global_cpu_usage_percentage: f32,
-    pub used_memory_percentage: f32,
+    pub(crate) service_state: ServiceState,
+    pub(crate) global_cpu_usage_percentage: f32,
+    pub(crate) used_memory_percentage: f32,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
@@ -86,7 +86,7 @@ pub enum ServiceState {
 }
 
 #[tracing::instrument(name = "Determine Health Status with gathered parameters", skip_all)]
-pub fn health_is_good(health: &PWHealth, limits: &LimitSettings) -> bool {
+pub(crate) fn health_is_good(health: &PWHealth, limits: &LimitSettings) -> bool {
     // HI_QUEUE
     if let Some(hi_queue_size) = health.hi_queue_size
         && hi_queue_size > limits.hi_queue_count

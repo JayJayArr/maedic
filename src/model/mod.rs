@@ -1,3 +1,3 @@
-pub mod hi_queue;
-pub mod panel;
-pub mod spoolfile;
+pub(crate) mod hi_queue;
+pub(crate) mod panel;
+pub(crate) mod spoolfile;

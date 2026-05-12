@@ -41,7 +41,7 @@ pub async fn setup_database_pool(
     Ok(pool)
 }
 #[cfg(target_os = "windows")]
-fn setup_auth(db_config: DatabaseSettings, pool_config: &mut Config) {
+pub(crate) fn setup_auth(db_config: DatabaseSettings, pool_config: &mut Config) {
     match db_config.auth_method {
         DBAuthMethod::Basic => {
             pool_config.authentication(AuthMethod::sql_server(
@@ -62,7 +62,7 @@ fn setup_auth(db_config: DatabaseSettings, pool_config: &mut Config) {
 }
 
 #[cfg(target_os = "linux")]
-fn setup_auth(db_config: DatabaseSettings, pool_config: &mut Config) {
+pub(crate) fn setup_auth(db_config: DatabaseSettings, pool_config: &mut Config) {
     match db_config.auth_method {
         DBAuthMethod::Basic => {
             pool_config.authentication(AuthMethod::sql_server(
@@ -78,7 +78,7 @@ fn setup_auth(db_config: DatabaseSettings, pool_config: &mut Config) {
 }
 
 #[tracing::instrument(name = "check database connection", skip(pool))]
-pub async fn get_db_status(
+pub(crate) async fn get_db_status(
     pool: DBConnectionPool,
 ) -> Result<DatabaseConnectionState, ApplicationError> {
     match pool
@@ -98,7 +98,7 @@ pub async fn get_db_status(
 }
 
 #[tracing::instrument(name = "Check unhealthy spoolfiles", skip_all)]
-pub async fn get_unhealthy_spoolfiles(
+pub(crate) async fn get_unhealthy_spoolfiles(
     pool: DBConnectionPool,
     limit_per_channel: i32,
 ) -> Result<Vec<SpoolFileCount>, ApplicationError> {
@@ -114,7 +114,7 @@ pub async fn get_unhealthy_spoolfiles(
 }
 
 #[tracing::instrument(name = "Check Table Size", skip(pool))]
-pub async fn get_table_count(
+pub(crate) async fn get_table_count(
     pool: DBConnectionPool,
     tablename: String,
 ) -> Result<i32, ApplicationError> {
@@ -133,7 +133,7 @@ pub async fn get_table_count(
 }
 
 #[tracing::instrument(name = "Check Card Status", skip(pool))]
-pub async fn get_card_state(
+pub(crate) async fn get_card_state(
     pool: DBConnectionPool,
     status: String,
 ) -> Result<i32, ApplicationError> {
@@ -155,7 +155,7 @@ pub async fn get_card_state(
 }
 
 #[tracing::instrument(name = "Get Version & build number", skip(pool))]
-pub async fn get_version_number(
+pub(crate) async fn get_version_number(
     pool: DBConnectionPool,
 ) -> Result<(u8, u8, u8, i32), ApplicationError> {
     let mut client = pool.get().await?;
@@ -205,7 +205,7 @@ pub async fn get_version_number(
 }
 
 #[tracing::instrument(name = "Get Hi_Queue per Panel", skip(pool))]
-pub async fn get_hiqueue_count_per_panel(
+pub(crate) async fn get_hiqueue_count_per_panel(
     pool: DBConnectionPool,
 ) -> Result<Vec<HiQueueCount>, ApplicationError> {
     let mut client = pool.get().await?;
@@ -264,7 +264,7 @@ pub async fn get_hiqueue_count_per_panel(
 }
 
 #[tracing::instrument(name = "Get Firmware Records", skip(pool))]
-pub async fn get_panel_state(
+pub(crate) async fn get_panel_state(
     pool: DBConnectionPool,
 ) -> Result<Vec<PanelInstalled>, ApplicationError> {
     let mut client = pool.get().await?;

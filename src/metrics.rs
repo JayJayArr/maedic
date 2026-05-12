@@ -151,37 +151,37 @@ pub struct Metrics {
 }
 
 impl Metrics {
-    pub fn set_table_size(&self, size: TableSizes, value: i64) {
+    fn set_table_size(&self, size: TableSizes, value: i64) {
         self.table
             .get_or_create(&TableSizeLabels { table: size })
             .set(value);
     }
 
-    pub fn set_card_state(&self, state: CardStates, value: i64) {
+    fn set_card_state(&self, state: CardStates, value: i64) {
         self.status
             .get_or_create(&CardStateLabels { status: state })
             .set(value);
     }
 
-    pub fn set_version(&self, version: VersionComponents, value: i64) {
+    fn set_version(&self, version: VersionComponents, value: i64) {
         self.version
             .get_or_create(&VersionLabels { value: version })
             .set(value);
     }
 
-    pub fn set_spool_file_count(&self, panel: String, value: i64) {
+    fn set_spool_file_count(&self, panel: String, value: i64) {
         self.spool_files
             .get_or_create(&SpoolFileLabel { panel })
             .set(value);
     }
 
-    pub fn set_hi_queue_count_for_panel(&self, channel: String, value: i64) {
+    fn set_hi_queue_count_for_panel(&self, channel: String, value: i64) {
         self.hi_queue_counts
             .get_or_create(&HiQueueLabel { channel })
             .set(value);
     }
 
-    pub fn set_panel_firmware(&self, panel: String, major: i64, minor: i64, installed: i64) {
+    fn set_panel_firmware(&self, panel: String, major: i64, minor: i64, installed: i64) {
         self.panel_installed
             .get_or_create(&PanelInstalledLabel {
                 panel,
@@ -190,7 +190,7 @@ impl Metrics {
             })
             .set(installed);
     }
-    pub fn inc_requests(&self, endpoint: Endpoint) {
+    pub(crate) fn inc_requests(&self, endpoint: Endpoint) {
         self.maedic_requests
             .get_or_create(&EndpointLabels { endpoint })
             .inc();
@@ -198,7 +198,7 @@ impl Metrics {
 }
 
 #[tracing::instrument(name = "Collect metrics", skip(pool, metrics))]
-pub async fn collect_metrics(
+pub(crate) async fn collect_metrics(
     pool: DBConnectionPool,
     metrics: &Metrics,
 ) -> Result<(), ApplicationError> {

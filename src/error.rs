@@ -3,7 +3,7 @@ use bb8::RunError;
 
 /// Runtime Errors
 #[derive(thiserror::Error, Debug)]
-pub enum ApplicationError {
+pub(crate) enum ApplicationError {
     /// Unknown Error
     #[error(transparent)]
     Unexpected(#[from] anyhow::Error),
@@ -29,7 +29,7 @@ impl IntoResponse for ApplicationError {
     fn into_response(self) -> axum::response::Response {
         let (status, message) = match self {
             Self::Unexpected(err) => {
-                tracing::error!("Unexpexted Error{:?}", err);
+                tracing::error!("Unexpected Error{:?}", err);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     format!("Unexpected Error: {:?}", err.to_string()),

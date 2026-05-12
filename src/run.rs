@@ -45,7 +45,7 @@ pub async fn run(
         .per_second(1)
         .burst_size(4)
         .finish()
-        .unwrap();
+        .expect("Failed to create RateLimiter Settings");
 
     let app = Router::new()
         .route("/v1/health", get(check_health))

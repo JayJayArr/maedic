@@ -20,7 +20,7 @@ use crate::{
 
 /// Handler to check the Health of PW
 #[tracing::instrument(name = "check PW health", skip_all)]
-pub async fn check_health(
+pub(crate) async fn check_health(
     State(state): State<Arc<Mutex<AppState>>>,
 ) -> Result<(StatusCode, Json<PWHealth>), ApplicationError> {
     let mut state = state.lock().await;
@@ -82,7 +82,7 @@ pub async fn check_health(
 
 /// Exposing the `LimitSettings` for the health check endpoint
 #[tracing::instrument(name = "Getting exposed config", skip_all)]
-pub async fn get_config_handler(
+pub(crate) async fn get_config_handler(
     State(state): State<Arc<Mutex<AppState>>>,
 ) -> Result<(StatusCode, Json<LimitSettings>), StatusCode> {
     let state = state.lock().await;
@@ -96,7 +96,9 @@ pub async fn get_config_handler(
 
 /// Exposing Prometheus style metrics collected from the database
 #[tracing::instrument(name = "Scrape metrics", skip(state))]
-pub async fn metrics_handler(State(state): State<Arc<Mutex<AppState>>>) -> impl IntoResponse {
+pub(crate) async fn metrics_handler(
+    State(state): State<Arc<Mutex<AppState>>>,
+) -> impl IntoResponse {
     let state = state.lock().await;
     state.metrics.inc_requests(Endpoint::Metrics);
     collect_metrics(state.pool.clone(), &state.metrics)

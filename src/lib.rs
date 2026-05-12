@@ -1,10 +1,10 @@
 pub mod checks;
 pub mod configuration;
 pub mod database;
-pub mod error;
-pub mod handler;
+pub(crate) mod error;
+pub(crate) mod handler;
 pub mod health;
 pub mod metrics;
-pub mod model;
+pub(crate) mod model;
 pub mod run;
 pub mod telemetry;

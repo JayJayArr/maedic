@@ -5,6 +5,7 @@ use maedic::{
     run::{AppState, run},
     telemetry::initialize_tracing,
 };
+
 use sysinfo::System;
 
 #[tokio::main]

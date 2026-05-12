@@ -145,6 +145,8 @@ async fn test_metrics_content_type(#[case] db_version: DbVersion) {
 
     assert!(response.status().is_success());
     let headermap = response.headers();
-    let content_type = headermap.get("content-type").unwrap();
+    let content_type = headermap
+        .get("content-type")
+        .expect("Failed to get content_type from header");
     assert_eq!(content_type, "text/plain; version=0.0.4; charset=utf-8");
 }

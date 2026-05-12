@@ -31,7 +31,8 @@ pub struct TestApplication {
 }
 
 static TRACING: Lazy<()> = Lazy::new(|| {
-    initialize_tracing("info".to_string(), "maedic.log".to_string()).unwrap();
+    initialize_tracing("info".to_string(), "maedic.log".to_string())
+        .expect("Could not initialize tracing for ./maedic.log");
 });
 
 impl TestApplication {
@@ -53,7 +54,7 @@ impl TestApplication {
 
         let pool = setup_database_pool(configuration.database.clone())
             .await
-            .unwrap();
+            .expect("Failed to create database connection pool");
 
         let application = TestServer::build(configuration.clone())
             .await
@@ -85,14 +86,17 @@ impl TestServer {
     pub async fn build(configuration: Settings) -> Result<Self, anyhow::Error> {
         let connection_pool = setup_database_pool(configuration.database.clone())
             .await
-            .unwrap();
+            .expect("Failed to create database connection pool");
         let listener = TcpListener::bind(format!(
             "{}:{}",
             configuration.application.host, configuration.application.port
         ))
         .await
         .expect("could not bind port");
-        let port = listener.local_addr().unwrap().port();
+        let port = listener
+            .local_addr()
+            .expect("Failed to create listener")
+            .port();
         let (registry, metrics) = setup_metrics_registry().await;
         info!(
             "Starting app on {:?}:{:?}",
@@ -162,11 +166,13 @@ pub async fn create_db_client(
     if db_config.trust_cert {
         config.trust_cert();
     }
-    let tcp = TcpStream::connect(config.get_addr()).await.unwrap();
-    tcp.set_nodelay(true).unwrap();
+    let tcp = TcpStream::connect(config.get_addr())
+        .await
+        .expect("Could not connect to database");
+    tcp.set_nodelay(true).expect("Could not set TCP NODELAY");
     Client::connect(config.clone(), tcp.compat_write())
         .await
-        .unwrap()
+        .expect("Could not connect database client")
 }
 
 pub async fn configure_database(
@@ -176,11 +182,17 @@ pub async fn configure_database(
     match db_version {
         DbVersion::V652SP1 => {
             refinery::embed_migrations!("tests/migrations/V652SP1");
-            migrations::runner().run_async(client).await.unwrap();
+            migrations::runner()
+                .run_async(client)
+                .await
+                .expect("Failed to run database migrations");
         }
         DbVersion::V66SP1 => {
             refinery::embed_migrations!("tests/migrations/V66SP1");
-            migrations::runner().run_async(client).await.unwrap();
+            migrations::runner()
+                .run_async(client)
+                .await
+                .expect("Failed to run database migrations");
         }
     }
 }
@@ -190,8 +202,14 @@ pub async fn create_database(
     mut client: Client<Compat<tokio::net::TcpStream>>,
 ) {
     let query = format!("CREATE DATABASE \"{}\"", db_config.database_name);
-    client.execute(query, &[]).await.unwrap();
-    client.close().await.unwrap();
+    client
+        .execute(query, &[])
+        .await
+        .expect("Failed to create test database");
+    client
+        .close()
+        .await
+        .expect("Failed to close database client");
 }
 
 #[derive(Clone, Debug)]

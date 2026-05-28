@@ -24,7 +24,7 @@ pub async fn setup_database_pool(
     let mut config = Config::new();
 
     setup_auth(db_config.clone(), &mut config);
-    config.host(db_config.host);
+    config.host(db_config.hostname);
     config.port(db_config.port);
     if db_config.trust_cert {
         config.trust_cert();

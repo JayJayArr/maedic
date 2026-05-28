@@ -9,7 +9,7 @@ application:
   expose_config: true
 database:
   # host: 172.17.0.2 # this example might be helpful when using docker
-  host: localhost
+  hostname: localhost #also accepts an IP-Address
   port: 1433
   # Authentication Method: Basic, Windows, Integrated
   # Change this to "Windows" to use Windows auth or "Integrated" to use Integrated auth

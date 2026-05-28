@@ -1,11 +1,11 @@
 use bb8::Pool;
 use bb8_tiberius::ConnectionManager;
-use config::Config;
+use config::{Config, ConfigError};
 use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use serde_aux::field_attributes::deserialize_number_from_string;
 
-pub fn get_configuration(name: String) -> Result<Settings, config::ConfigError> {
+pub fn get_configuration(name: String) -> Result<Settings, ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine current directory.");
     let config_directory = base_path.join("configuration");
 
@@ -38,7 +38,7 @@ pub struct ApplicationSettings {
 /// Settings for the Database Connection Pool
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct DatabaseSettings {
-    pub host: String,
+    pub hostname: String,
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
     pub auth_method: DBAuthMethod,
@@ -71,10 +71,10 @@ impl Default for DatabaseSettings {
     fn default() -> Self {
         Self {
             port: 1433,
-            host: "0.0.0.0".to_string(),
+            hostname: "0.0.0.0".to_string(),
             username: "sa".into(),
             auth_method: DBAuthMethod::Basic,
-            password: "Charlie".into(),
+            password: "Charlie 13".into(),
             database_name: "PWNT".into(),
             trust_cert: true,
         }
@@ -107,3 +107,31 @@ impl Default for ApplicationSettings {
 }
 
 pub type DBConnectionPool = Pool<ConnectionManager>;
+
+#[cfg(test)]
+mod tests {
+    use crate::configuration::get_configuration;
+    use rstest::rstest;
+
+    #[rstest]
+    #[case("test")]
+    #[case("base")]
+    fn test_configuration_for_tests_is_a_valid_configuration(#[case] configname: String) {
+        let config = get_configuration(configname);
+        assert!(config.is_ok());
+    }
+
+    #[test]
+    fn test_application_exits_on_bad_config() {
+        let config = get_configuration("../tests/bad_config.yaml".to_string());
+        dbg!(&config);
+        assert!(config.is_err());
+        match config {
+            Ok(_config) => panic!("this config should not be accepted as good"),
+            Err(err) => assert_eq!(
+                err.to_string(),
+                "missing configuration field \"database.trust_cert\"".to_string()
+            ),
+        }
+    }
+}

@@ -18,7 +18,7 @@ database:
   username: sa
   password: "Charlie 13"
   database_name: PWNT
-  trust_cert: true
+  trust_certs: true
 limits:
   check_local_service: false
   # set any value to 0 to deactivate the check

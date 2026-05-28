@@ -154,7 +154,7 @@ pub async fn create_db_client(
 ) -> Client<Compat<tokio::net::TcpStream>> {
     let mut config = Config::new();
 
-    config.host(db_config.host.clone());
+    config.host(db_config.hostname.clone());
     config.port(db_config.port);
     config.authentication(AuthMethod::sql_server(
         db_config.username.clone(),

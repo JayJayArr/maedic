@@ -21,7 +21,7 @@ use tracing::{info, info_span};
 #[derive(Debug)]
 pub struct AppState {
     pub pool: DBConnectionPool,
-    pub config: Settings,
+    pub settings: Settings,
     pub sys: System,
     pub registry: Registry,
     pub metrics: Metrics,

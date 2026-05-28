@@ -5,12 +5,12 @@ use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use serde_aux::field_attributes::deserialize_number_from_string;
 
-pub fn get_configuration(name: String) -> Result<Settings, ConfigError> {
+pub fn get_settings(name: String) -> Result<Settings, ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine current directory.");
-    let config_directory = base_path.join("configuration");
+    let settings_directory = base_path.join("settings");
 
     Config::builder()
-        .add_source(config::File::from(config_directory.join(name)).required(true))
+        .add_source(config::File::from(settings_directory.join(name)).required(true))
         .build()?
         .try_deserialize()
 }
@@ -110,20 +110,20 @@ pub type DBConnectionPool = Pool<ConnectionManager>;
 
 #[cfg(test)]
 mod tests {
-    use crate::configuration::get_configuration;
+    use crate::configuration::get_settings;
     use rstest::rstest;
 
     #[rstest]
     #[case("test")]
     #[case("base")]
     fn test_configuration_for_tests_is_a_valid_configuration(#[case] configname: String) {
-        let config = get_configuration(configname);
+        let config = get_settings(configname);
         assert!(config.is_ok());
     }
 
     #[test]
     fn test_application_exits_on_bad_config() {
-        let config = get_configuration("../tests/bad_config.yaml".to_string());
+        let config = get_settings("../tests/bad_config.yaml".to_string());
         dbg!(&config);
         assert!(config.is_err());
         match config {

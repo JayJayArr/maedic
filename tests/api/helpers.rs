@@ -6,7 +6,7 @@ use axum::serve::Serve;
 use maedic::metrics::setup_metrics_registry;
 use maedic::run::run;
 use maedic::{
-    configuration::{DBConnectionPool, DatabaseSettings, Settings, get_configuration},
+    configuration::{DBConnectionPool, DatabaseSettings, Settings, get_settings},
     database::setup_database_pool,
     run::AppState,
     telemetry::initialize_tracing,
@@ -39,24 +39,23 @@ impl TestApplication {
     pub async fn spawn_app(db_version: DbVersion) -> TestApplication {
         Lazy::force(&TRACING);
 
-        let configuration = {
-            let mut c =
-                get_configuration("test".to_string()).expect("Failed to read configuration");
+        let settings = {
+            let mut c = get_settings("test".to_string()).expect("Failed to read configuration");
             c.database.database_name = Uuid::new_v4().to_string();
             c.application.port = 0;
             c
         };
-        let creation_client = create_db_client(&configuration.database, false).await;
-        create_database(&configuration.database, creation_client).await;
+        let creation_client = create_db_client(&settings.database, false).await;
+        create_database(&settings.database, creation_client).await;
 
-        let mut migration_client = create_db_client(&configuration.database, true).await;
+        let mut migration_client = create_db_client(&settings.database, true).await;
         configure_database(&mut migration_client, db_version.clone()).await;
 
-        let pool = setup_database_pool(configuration.database.clone())
+        let pool = setup_database_pool(settings.database.clone())
             .await
             .expect("Failed to create database connection pool");
 
-        let application = TestServer::build(configuration.clone())
+        let application = TestServer::build(settings.clone())
             .await
             .expect("Failed to build Application.");
         let address = format!("http://127.0.0.1:{}", application.port());
@@ -64,7 +63,7 @@ impl TestApplication {
         let app = TestApplication {
             pool,
             address,
-            config: configuration,
+            config: settings,
             db_version,
         };
         let _handle = tokio::spawn(application.run_until_stopped());
@@ -83,13 +82,13 @@ pub struct TestServer {
 }
 
 impl TestServer {
-    pub async fn build(configuration: Settings) -> Result<Self, anyhow::Error> {
-        let connection_pool = setup_database_pool(configuration.database.clone())
+    pub async fn build(settings: Settings) -> Result<Self, anyhow::Error> {
+        let connection_pool = setup_database_pool(settings.database.clone())
             .await
             .expect("Failed to create database connection pool");
         let listener = TcpListener::bind(format!(
             "{}:{}",
-            configuration.application.host, configuration.application.port
+            settings.application.host, settings.application.port
         ))
         .await
         .expect("could not bind port");
@@ -100,19 +99,19 @@ impl TestServer {
         let (registry, metrics) = setup_metrics_registry().await;
         info!(
             "Starting app on {:?}:{:?}",
-            configuration.application.host, configuration.application.port
+            settings.application.host, settings.application.port
         );
         //Start the application
         let server = run(
             listener,
             AppState {
                 pool: connection_pool,
-                config: configuration.clone(),
+                settings: settings.clone(),
                 sys: System::new_all(),
                 registry,
                 metrics,
             },
-            configuration,
+            settings,
         )
         .await?;
         Ok(Self { port, server })

@@ -1,5 +1,5 @@
 use maedic::{
-    configuration::get_configuration,
+    configuration::get_settings,
     database::setup_database_pool,
     metrics::setup_metrics_registry,
     run::{AppState, run},
@@ -10,7 +10,7 @@ use sysinfo::System;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let configuration = get_configuration("base".to_string())?;
+    let configuration = get_settings("base".to_string())?;
 
     initialize_tracing(
         configuration.application.log_level.clone(),
@@ -30,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
     let (registry, metrics) = setup_metrics_registry().await;
     let state = AppState {
         pool,
-        config: configuration.clone(),
+        settings: configuration.clone(),
         sys: System::new_all(),
         registry,
         metrics,

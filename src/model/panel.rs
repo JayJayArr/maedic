@@ -2,7 +2,7 @@ pub struct PanelInstalled {
     pub description: String,
     pub firmware_major_version: i64,
     pub firmware_minor_version: i64,
-    pub installed: i64,
+    pub installed: bool,
 }
 
 impl From<tiberius::Row> for PanelInstalled {
@@ -19,9 +19,9 @@ impl From<tiberius::Row> for PanelInstalled {
                 .unwrap_or_default()
                 .to_string(),
             installed: if val.get::<&str, &str>("installed").unwrap_or_default() == "Y" {
-                1
+                true
             } else {
-                0
+                false
             },
             firmware_major_version: iter
                 .next()
@@ -51,9 +51,9 @@ impl From<&tiberius::Row> for PanelInstalled {
                 .unwrap_or_default()
                 .to_string(),
             installed: if val.get::<&str, &str>("installed").unwrap_or_default() == "Y" {
-                1
+                true
             } else {
-                0
+                false
             },
             firmware_major_version: iter
                 .next()

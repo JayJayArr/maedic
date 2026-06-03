@@ -181,14 +181,14 @@ impl Metrics {
             .set(value);
     }
 
-    fn set_panel_firmware(&self, panel: String, major: i64, minor: i64, installed: i64) {
+    fn set_panel_firmware(&self, panel: String, major: i64, minor: i64, installed: bool) {
         self.panel_installed
             .get_or_create(&PanelInstalledLabel {
                 panel,
                 major_version: major,
                 minor_version: minor,
             })
-            .set(installed);
+            .set(installed.into());
     }
     pub(crate) fn inc_requests(&self, endpoint: Endpoint) {
         self.maedic_requests

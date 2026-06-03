@@ -4,6 +4,8 @@ use crate::database::{
     get_unhealthy_spoolfiles, get_version_number,
 };
 use crate::error::ApplicationError;
+use crate::model::card::CardStates;
+use crate::model::table::Tables;
 use prometheus_client::encoding::{EncodeLabelSet, EncodeLabelValue};
 use prometheus_client::metrics::counter::Counter;
 use prometheus_client::metrics::family::Family;
@@ -12,73 +14,7 @@ use prometheus_client::registry::Registry;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-/// `TableSizes` lists the Tables where the size is used in the metrics
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelValue, EnumIter, strum_macros::Display)]
-pub enum TableSizes {
-    #[strum(to_string = "audit_log")]
-    AuditChanges,
-    #[strum(to_string = "badge")]
-    Badges,
-    #[strum(to_string = "badge_c")]
-    Cards,
-    #[strum(to_string = "panel")]
-    Panels,
-    #[strum(to_string = "channel")]
-    Channels,
-    #[strum(to_string = "reader")]
-    Readers,
-    #[strum(to_string = "input")]
-    Inputs,
-    #[strum(to_string = "output")]
-    Outputs,
-    #[strum(to_string = "logical_dev")]
-    LogicalDevices,
-    #[strum(to_string = "company")]
-    Companies,
-    #[strum(to_string = "clear")]
-    ClearanceCodes,
-    #[strum(to_string = "hi_queue")]
-    HiQueue,
-    #[strum(to_string = "unack_Al")]
-    UnacknowledgedAlarms,
-    #[strum(to_string = "ev_log")]
-    Events,
-    #[strum(to_string = "parti")]
-    Partitions,
-    #[strum(to_string = "uid")]
-    SoftwareUsers,
-    #[strum(to_string = "spanel")]
-    Subpanels,
-    #[strum(to_string = "wrkst")]
-    Workstations,
-}
-
-/// `CardStates` lists the possible States of a saved card
-/// e.g. `Active` or `Disabled`, each state being saved as a single char in the db
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelValue, EnumIter, strum_macros::Display)]
-pub enum CardStates {
-    #[strum(to_string = "A")]
-    Active,
-    #[strum(to_string = "D")]
-    Disabled,
-    #[strum(to_string = "O")]
-    AutoDisabled,
-    #[strum(to_string = "X")]
-    Expired,
-    #[strum(to_string = "L")]
-    Lost,
-    #[strum(to_string = "S")]
-    Stolen,
-    #[strum(to_string = "T")]
-    Terminated,
-    #[strum(to_string = "U")]
-    Unaccounted,
-    #[strum(to_string = "V")]
-    Void,
-}
-
-/// `CardStates` lists the possible States of a saved card
-/// e.g. `Active` or `Disabled`, each state being saved as a single char in the db
+/// `VersionComponents` lists the different components of a Version
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelValue, EnumIter)]
 pub enum VersionComponents {
     Major,
@@ -96,7 +32,7 @@ pub struct CardStateLabels {
 /// `TableSizeLabels` is the displayed label for each Metric in the family
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 pub struct TableSizeLabels {
-    pub table: TableSizes,
+    pub table: Tables,
 }
 
 /// `VersionLabels` is the displayed label for the Version numbers
@@ -151,7 +87,7 @@ pub struct Metrics {
 }
 
 impl Metrics {
-    fn set_table_size(&self, size: TableSizes, value: i64) {
+    fn set_table_size(&self, size: Tables, value: i64) {
         self.table
             .get_or_create(&TableSizeLabels { table: size })
             .set(value);
@@ -210,7 +146,7 @@ pub(crate) async fn collect_metrics(
     metrics.set_version(VersionComponents::BuildNo, build_no.into());
 
     // Collect Table sizes
-    for count in TableSizes::iter() {
+    for count in Tables::iter() {
         let countvalue = get_table_count(pool.clone(), count.to_string()).await?;
         metrics.set_table_size(count, countvalue.into());
     }

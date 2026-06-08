@@ -18,11 +18,7 @@ impl From<tiberius::Row> for PanelInstalled {
                 .get::<&str, &str>("description")
                 .unwrap_or_default()
                 .to_string(),
-            installed: if val.get::<&str, &str>("installed").unwrap_or_default() == "Y" {
-                true
-            } else {
-                false
-            },
+            installed: val.get::<&str, &str>("installed").unwrap_or_default() == "Y",
             firmware_major_version: iter
                 .next()
                 .unwrap_or(&"0")
@@ -50,11 +46,7 @@ impl From<&tiberius::Row> for PanelInstalled {
                 .get::<&str, &str>("description")
                 .unwrap_or_default()
                 .to_string(),
-            installed: if val.get::<&str, &str>("installed").unwrap_or_default() == "Y" {
-                true
-            } else {
-                false
-            },
+            installed: val.get::<&str, &str>("installed").unwrap_or_default() == "Y",
             firmware_major_version: iter
                 .next()
                 .unwrap_or(&"0")

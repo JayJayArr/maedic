@@ -41,4 +41,3 @@ pub enum Tables {
     #[strum(to_string = "wrkst")]
     Workstations,
 }
-

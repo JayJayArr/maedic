@@ -21,17 +21,17 @@ rstest = "0.26.1"
 secrecy = {version = "0.10.3", features = ["serde"]}
 serde = "1.0.228"
 serde-aux = "4.7.0"
-sysinfo = "0.38.4"
+sysinfo = "0.39.5"
 thiserror = "2.0.18"
 tiberius = {version = "0.12.3", features = ["rustls", "winauth", "integrated-auth-gssapi"], default-features = false}
 tokio = {version = "1.52.3", features = ["rt-multi-thread", "macros"]}
 tokio-util = { version = "0.7.18", features = ["compat"]}
 tower_governor = "0.8.0"
-tower-http = {version = "0.6.11", features= ["trace", "request-id"]}
+tower-http = {version = "0.7.0", features= ["trace", "request-id"]}
 tracing = {version="0.1.44", features = ["std", "attributes"]}
 tracing-subscriber = {version = "0.3.23", features = ["json", "std", "env-filter", "registry", "fmt"]}
 uuid = {version = "1.23.3", features = ["v4"]}
-prometheus-client = "0.24.1"
+prometheus-client = "0.25.0"
 strum_macros = "0.28.0"
 strum = "0.28.0"
 

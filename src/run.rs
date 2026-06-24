@@ -50,7 +50,7 @@ pub async fn run(
     let app = Router::new()
         .route("/v1/health", get(check_health))
         .route("/v1/config", get(get_config_handler))
-        .route("/v1/metrics", get(metrics_handler))
+        .route("/metrics", get(metrics_handler))
         .with_state(Arc::new(Mutex::new(state)))
         .layer(GovernorLayer::new(governor_conf))
         .layer(

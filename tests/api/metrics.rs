@@ -9,7 +9,7 @@ async fn test_metrics_database_sizes(#[case] db_version: DbVersion) {
     let app = TestApplication::spawn_app(db_version).await;
     let client = TestClient::new();
 
-    let response = client.get_endpoint(app.address, "/v1/metrics").await;
+    let response = client.get_endpoint(app.address, "/metrics").await;
 
     assert!(response.status().is_success());
     let text = response
@@ -40,7 +40,7 @@ async fn test_metrics_card_states(#[case] db_version: DbVersion) {
     let app = TestApplication::spawn_app(db_version).await;
     let client = TestClient::new();
 
-    let response = client.get_endpoint(app.address, "/v1/metrics").await;
+    let response = client.get_endpoint(app.address, "/metrics").await;
 
     assert!(response.status().is_success());
     let text = response
@@ -69,7 +69,7 @@ async fn test_metrics_version_numbers(#[case] db_version: DbVersion) {
     let app = TestApplication::spawn_app(db_version).await;
     let client = TestClient::new();
 
-    let response = client.get_endpoint(app.address, "/v1/metrics").await;
+    let response = client.get_endpoint(app.address, "/metrics").await;
 
     assert!(response.status().is_success());
     let text = response
@@ -93,7 +93,7 @@ async fn test_metrics_panel_installed(#[case] db_version: DbVersion) {
     let app = TestApplication::spawn_app(db_version).await;
     let client = TestClient::new();
 
-    let response = client.get_endpoint(app.address, "/v1/metrics").await;
+    let response = client.get_endpoint(app.address, "/metrics").await;
 
     assert!(response.status().is_success());
     let text = response
@@ -118,7 +118,7 @@ async fn test_metrics_maedic_requests(#[case] db_version: DbVersion) {
 
     let _ = client.get_endpoint(app.address.clone(), "/v1/config").await;
     let _ = client.get_endpoint(app.address.clone(), "/v1/health").await;
-    let response = client.get_endpoint(app.address, "/v1/metrics").await;
+    let response = client.get_endpoint(app.address, "/metrics").await;
 
     assert!(response.status().is_success());
     let text = response
@@ -141,7 +141,7 @@ async fn test_metrics_content_type(#[case] db_version: DbVersion) {
     let app = TestApplication::spawn_app(db_version).await;
     let client = TestClient::new();
 
-    let response = client.get_endpoint(app.address, "/v1/metrics").await;
+    let response = client.get_endpoint(app.address, "/metrics").await;
 
     assert!(response.status().is_success());
     let headermap = response.headers();

@@ -112,3 +112,9 @@ pub(crate) async fn metrics_handler(
         .body(Body::from(buffer))
         .unwrap()
 }
+
+/// Exposing Prometheus style metrics collected from the database
+#[tracing::instrument(name = "found 404")]
+pub async fn handler_404() -> impl IntoResponse {
+    (StatusCode::NOT_FOUND, "nothing to see here")
+}

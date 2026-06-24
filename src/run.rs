@@ -1,6 +1,6 @@
 use crate::{
     configuration::{DBConnectionPool, Settings},
-    handler::{check_health, get_config_handler, metrics_handler},
+    handler::{check_health, get_config_handler, handler_404, metrics_handler},
     metrics::Metrics,
 };
 use axum::{
@@ -51,6 +51,7 @@ pub async fn run(
         .route("/v1/health", get(check_health))
         .route("/v1/config", get(get_config_handler))
         .route("/metrics", get(metrics_handler))
+        .fallback(handler_404)
         .with_state(Arc::new(Mutex::new(state)))
         .layer(GovernorLayer::new(governor_conf))
         .layer(

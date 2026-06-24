@@ -6,15 +6,16 @@ use crate::{
 use axum::{
     Router,
     extract::{ConnectInfo, MatchedPath, Request, connect_info::IntoMakeServiceWithConnectInfo},
+    http::StatusCode,
     middleware::AddExtension,
 };
 use axum::{routing::get, serve::Serve};
 use prometheus_client::registry::Registry;
-use std::{net::SocketAddr, sync::Arc};
+use std::{net::SocketAddr, sync::Arc, time::Duration};
 use sysinfo::System;
 use tokio::{net::TcpListener, sync::Mutex};
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
-use tower_http::trace::TraceLayer;
+use tower_http::{timeout::TimeoutLayer, trace::TraceLayer};
 use tracing::{info, info_span};
 
 /// The current running state of the Application
@@ -54,7 +55,7 @@ pub async fn run(
         .fallback(handler_404)
         .with_state(Arc::new(Mutex::new(state)))
         .layer(GovernorLayer::new(governor_conf))
-        .layer(
+        .layer((
             TraceLayer::new_for_http()
                 .make_span_with(|request: &Request<_>| {
                     let request_id = uuid::Uuid::new_v4();
@@ -71,7 +72,8 @@ pub async fn run(
                     )
                 })
                 .on_failure(()),
-        );
+            TimeoutLayer::with_status_code(StatusCode::REQUEST_TIMEOUT, Duration::from_secs(10)),
+        ));
 
     info!(
         "Starting maedic version {} with config: {:?}",

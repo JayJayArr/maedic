@@ -19,7 +19,7 @@ The following endpoints are available:
 
 - `/v1/health` for the health of PW, checking the database connection at the same time
 - `/v1/config` to check the configured limits and options
-- `/v1/metrics` exposes an endpoint for `Prometheus` Style Metrics
+- `/metrics` exposes an endpoint for `Prometheus` Style Metrics
 
 ## Metrics:
 

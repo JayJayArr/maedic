@@ -59,6 +59,7 @@ async fn test_pw_health_endpoint_works_with_db(#[case] db_version: DbVersion) {
 #[tokio::test]
 #[rstest]
 #[case(DbVersion::V652SP1)]
+#[case(DbVersion::V66SP1)]
 async fn test_version_number_is_correct(#[case] db_version: DbVersion) {
     let app = TestApplication::spawn_app(db_version).await;
     let client = reqwest::Client::new();
@@ -75,4 +76,22 @@ async fn test_version_number_is_correct(#[case] db_version: DbVersion) {
     let text = response.text().await.unwrap();
 
     assert!(text.contains(&version_number))
+}
+
+#[tokio::test]
+#[rstest]
+#[case(DbVersion::V652SP1)]
+#[case(DbVersion::V66SP1)]
+async fn test_404_is_sent(#[case] db_version: DbVersion) {
+    let app = TestApplication::spawn_app(db_version).await;
+    let client = reqwest::Client::new();
+
+    let response = client
+        .get(format!("{}/not_existing", app.address))
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(response.status(), 404);
+    assert_eq!(response.text().await.unwrap(), "nothing to see here");
 }

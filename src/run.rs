@@ -60,7 +60,9 @@ pub async fn run(
         .layer(
             ServiceBuilder::new()
                 .layer(HandleErrorLayer::new(handle_timeout_error))
-                .timeout(Duration::from_secs(5))
+                .timeout(Duration::from_secs(
+                    configuration.application.request_time_limit_seconds,
+                ))
                 .layer((TraceLayer::new_for_http()
                     .make_span_with(|request: &Request<_>| {
                         let request_id = uuid::Uuid::new_v4();
@@ -78,10 +80,6 @@ pub async fn run(
                     })
                     .on_failure(()),))
                 .layer(GovernorLayer::new(governor_conf)),
-            // .layer(TimeoutLayer::with_status_code(
-            //     StatusCode::REQUEST_TIMEOUT,
-            //     Duration::from_secs(5),
-            // )),
         );
 
     info!(

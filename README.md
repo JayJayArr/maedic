@@ -88,3 +88,13 @@ pm2 start ecosystem.config.js
 pm2 save
 
 ```
+
+## License
+
+maedic is licensed under either of
+
+- Apache License, Version 2.0, ([LICENSE-APACHE](https://github.com/lycheeverse/lychee/blob/master/LICENSE-APACHE) or
+  https://www.apache.org/licenses/LICENSE-2.0)
+- MIT license ([LICENSE-MIT](https://github.com/lycheeverse/lychee/blob/master/LICENSE-MIT) or https://opensource.org/license/MIT)
+
+at your option.

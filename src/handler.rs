@@ -1,5 +1,7 @@
+use axum::BoxError;
 use axum::body::Body;
 use axum::http::header::CONTENT_TYPE;
+use axum::http::{Method, Uri};
 use axum::http::{Response, StatusCode};
 use axum::response::IntoResponse;
 use axum::{Json, extract::State};
@@ -117,4 +119,18 @@ pub(crate) async fn metrics_handler(
 #[tracing::instrument(name = "found 404")]
 pub async fn handler_404() -> impl IntoResponse {
     (StatusCode::NOT_FOUND, "nothing to see here")
+}
+
+pub async fn handle_timeout_error(method: Method, uri: Uri, err: BoxError) -> (StatusCode, String) {
+    if err.is::<tower::timeout::error::Elapsed>() {
+        (
+            StatusCode::REQUEST_TIMEOUT,
+            "Request took too long".to_string(),
+        )
+    } else {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("`{method} {uri}` failed with {err}"),
+        )
+    }
 }

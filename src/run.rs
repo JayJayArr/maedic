@@ -1,12 +1,14 @@
 use crate::{
     configuration::{DBConnectionPool, Settings},
-    handler::{check_health, get_config_handler, handler_404, metrics_handler},
+    handler::{
+        check_health, get_config_handler, handle_timeout_error, handler_404, metrics_handler,
+    },
     metrics::Metrics,
 };
 use axum::{
     Router,
+    error_handling::HandleErrorLayer,
     extract::{ConnectInfo, MatchedPath, Request, connect_info::IntoMakeServiceWithConnectInfo},
-    http::StatusCode,
     middleware::AddExtension,
 };
 use axum::{routing::get, serve::Serve};
@@ -14,8 +16,9 @@ use prometheus_client::registry::Registry;
 use std::{net::SocketAddr, sync::Arc, time::Duration};
 use sysinfo::System;
 use tokio::{net::TcpListener, sync::Mutex};
+use tower::ServiceBuilder;
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
-use tower_http::{timeout::TimeoutLayer, trace::TraceLayer};
+use tower_http::trace::TraceLayer;
 use tracing::{info, info_span};
 
 /// The current running state of the Application
@@ -54,26 +57,32 @@ pub async fn run(
         .route("/metrics", get(metrics_handler))
         .fallback(handler_404)
         .with_state(Arc::new(Mutex::new(state)))
-        .layer(GovernorLayer::new(governor_conf))
-        .layer((
-            TraceLayer::new_for_http()
-                .make_span_with(|request: &Request<_>| {
-                    let request_id = uuid::Uuid::new_v4();
-                    let matched_path = request
-                        .extensions()
-                        .get::<MatchedPath>()
-                        .map(MatchedPath::as_str);
+        .layer(
+            ServiceBuilder::new()
+                .layer(HandleErrorLayer::new(handle_timeout_error))
+                .timeout(Duration::from_secs(5))
+                .layer((TraceLayer::new_for_http()
+                    .make_span_with(|request: &Request<_>| {
+                        let request_id = uuid::Uuid::new_v4();
+                        let matched_path = request
+                            .extensions()
+                            .get::<MatchedPath>()
+                            .map(MatchedPath::as_str);
 
-                    info_span!(
-                        "http_request",
-                        method = ?request.method(),
-                        matched_path,
-                        request_id = tracing::field::display(request_id),
-                    )
-                })
-                .on_failure(()),
-            TimeoutLayer::with_status_code(StatusCode::REQUEST_TIMEOUT, Duration::from_secs(10)),
-        ));
+                        info_span!(
+                            "http_request",
+                            method = ?request.method(),
+                            matched_path,
+                            request_id = tracing::field::display(request_id),
+                        )
+                    })
+                    .on_failure(()),))
+                .layer(GovernorLayer::new(governor_conf)),
+            // .layer(TimeoutLayer::with_status_code(
+            //     StatusCode::REQUEST_TIMEOUT,
+            //     Duration::from_secs(5),
+            // )),
+        );
 
     info!(
         "Starting maedic version {} with config: {:?}",

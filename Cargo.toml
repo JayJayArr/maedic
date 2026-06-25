@@ -32,11 +32,9 @@ tiberius = {
 }
 tokio = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
 tokio-util = { version = "0.7.18", features = ["compat"] }
+tower = { version = "0.5.3", features = ["timeout"] }
 tower_governor = "0.8.0"
-tower-http = {
-  version = "0.7.0",
-  features = ["request-id", "timeout", "trace"]
-}
+tower-http = { version = "0.7.0", features = ["request-id", "trace"] }
 tracing = { version = "0.1.44", features = ["attributes", "std"] }
 tracing-subscriber = {
   version = "0.3.23",

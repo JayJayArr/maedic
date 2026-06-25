@@ -33,6 +33,7 @@ pub struct ApplicationSettings {
     pub log_level: String,
     pub service_name: String,
     pub expose_config: bool,
+    pub request_time_limit_seconds: u64,
 }
 
 /// Settings for the Database Connection Pool
@@ -102,6 +103,7 @@ impl Default for ApplicationSettings {
             log_level: "info".to_string(),
             service_name: "micserver.exe".into(),
             expose_config: false,
+            request_time_limit_seconds: 5,
         }
     }
 }

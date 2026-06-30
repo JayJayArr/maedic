@@ -25,21 +25,14 @@ strum = "0.28.0"
 strum_macros = "0.28.0"
 sysinfo = "0.39.5"
 thiserror = "2.0.18"
-tiberius = {
-  version = "0.12.3",
-  default-features = false,
-  features = ["integrated-auth-gssapi", "rustls", "winauth"]
-}
+tiberius = { version = "0.12.3", default-features = false, features = ["integrated-auth-gssapi", "rustls", "winauth"] }
 tokio = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
 tokio-util = { version = "0.7.18", features = ["compat"] }
 tower = { version = "0.5.3", features = ["timeout"] }
 tower_governor = "0.8.0"
 tower-http = { version = "0.7.0", features = ["request-id", "trace"] }
 tracing = { version = "0.1.44", features = ["attributes", "std"] }
-tracing-subscriber = {
-  version = "0.3.23",
-  features = ["env-filter", "fmt", "json", "registry", "std"]
-}
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "fmt", "json", "registry", "std"] }
 uuid = { version = "1.23.3", features = ["v4"] }
 
 [dev-dependencies]

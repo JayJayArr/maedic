@@ -8,7 +8,7 @@ application:
   expose_config: true
   request_time_limit_seconds: 5 # Time limit for requests, increase if the datbase queries take too long
 database:
-  # host: 172.17.0.1
+  # hostname: 172.17.0.1
   hostname: localhost #also accepts an IP-Address
   port: 1433
   # Authentication Method: Basic, Windows, Integrated

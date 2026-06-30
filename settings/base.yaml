@@ -8,7 +8,7 @@ application:
   expose_config: true
   request_time_limit_seconds: 5 # Time limit for requests, increase if the datbase queries take too long
 database:
-  # host: 172.17.0.2 # this example might be helpful when using docker
+  # hostname: 172.17.0.2 # this example might be helpful when using docker
   hostname: localhost #also accepts an IP-Address
   port: 1433
   # Authentication Method: Basic, Windows, Integrated

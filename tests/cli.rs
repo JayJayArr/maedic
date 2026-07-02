@@ -23,6 +23,6 @@ mod cli {
             .assert()
             .success()
             .code(0)
-            .stdout(contains(format!("only other supported subcommand")));
+            .stdout(contains("only other supported subcommand".to_string()));
     }
 }

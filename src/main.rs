@@ -11,11 +11,15 @@ use sysinfo::System;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    if let Some(argument) = std::env::args().nth(1)
-        && argument == "version"
-    {
-        println!("maedic version: {}", env!("CARGO_PKG_VERSION"),);
-        exit(0)
+    if let Some(argument) = std::env::args().nth(1) {
+        if argument == "version" {
+            println!("maedic version: {}", env!("CARGO_PKG_VERSION"),);
+        } else {
+            println!(
+                "this application is configured via the 'base.yaml' file and the only other supported subcommand is 'version'"
+            );
+        }
+        exit(0);
     }
 
     let configuration = get_settings("base".to_string())?;

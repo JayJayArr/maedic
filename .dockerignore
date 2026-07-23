@@ -1,6 +1,10 @@
 /target
 /.git
 /.github
-maedic.log
+/tests
+*.log
 ecosystem.config.js
 Makefile
+LICENSE*
+*.md
+compose.yaml

@@ -11,12 +11,10 @@ on:
     types:
       - opened
       - synchronize
-
 env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
   RUSTFLAGS: -D warnings
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -35,12 +33,13 @@ jobs:
       - uses: taiki-e/install-action@nextest
       - uses: Swatinem/rust-cache@v2
       - name: install libkrb5-dev
-        run: sudo apt-get -y install libkrb5-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install libkrb5-dev
       - name: Compile
         run: cargo check --locked
       - name: Test
         run: make test
-
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -51,6 +50,8 @@ jobs:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
       - name: install libkrb5-dev
-        run: sudo apt-get -y install libkrb5-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install libkrb5-dev
       - name: Run cargo clippy (deny warnings)
         run: make lint

@@ -11,28 +11,28 @@ name = "maedic"
 path = "src/main.rs"
 
 [dependencies]
-anyhow = "1.0.102"
+anyhow = "1.0.104"
 axum = { version = "0.8.9", features = ["json", "macros", "tokio"] }
 bb8 = "0.9.1"
 bb8-tiberius = "0.16.0"
-config = { version = "0.15.24", features = ["yaml"] }
+config = { version = "0.15.25", features = ["yaml"] }
 prometheus-client = "0.25.0"
 secrecy = { version = "0.10.3", features = ["serde"] }
-serde = "1.0.228"
+serde = "1.0.229"
 serde-aux = "4.7.0"
 strum = "0.28.0"
 strum_macros = "0.28.0"
-sysinfo = "0.39.5"
-thiserror = "2.0.18"
+sysinfo = "0.39.6"
+thiserror = "2.0.19"
 tiberius = { version = "0.12.3", default-features = false, features = ["integrated-auth-gssapi", "rustls", "winauth"] }
-tokio = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
-tokio-util = { version = "0.7.18", features = ["compat"] }
+tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread"] }
+tokio-util = { version = "0.7.19", features = ["compat"] }
 tower = { version = "0.5.3", features = ["timeout"] }
 tower_governor = "0.8.0"
-tower-http = { version = "0.7.0", features = ["request-id", "trace"] }
+tower-http = { version = "0.7.0", features = ["request-id", "trace", "timeout", "catch-panic"] }
 tracing = { version = "0.1.44", features = ["attributes", "std"] }
 tracing-subscriber = { version = "0.3.23", features = ["env-filter", "fmt", "json", "registry", "std"] }
-uuid = { version = "1.23.3", features = ["v4"] }
+uuid = { version = "1.24.0", features = ["v4"] }
 
 [dev-dependencies]
 assert_cmd = "2.2.2"

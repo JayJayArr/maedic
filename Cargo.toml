@@ -1,5 +1,6 @@
 [package]
 name = "maedic"
+repository = "https://github.com/JayJayArr/maedic"
 version = "0.5.1"
 edition = "2024"
 
@@ -41,3 +42,8 @@ predicates = "3.1.4"
 rstest = "0.26.1"
 refinery = { version = "0.9.2", features = ["tiberius"] }
 reqwest = { version = "0.13.4", features = ["cookies", "json", "rustls"] }
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"

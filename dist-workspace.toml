@@ -15,3 +15,6 @@ include = [
   "ecosystem.config.js",
   "./settings/"
 ]
+
+[dist.dependencies.apt]
+libkrb5-dev = '*'

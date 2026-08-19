@@ -34,6 +34,8 @@ pub struct ApplicationSettings {
     pub service_name: String,
     pub expose_config: bool,
     pub request_time_limit_seconds: u64,
+    pub rate_limit_per_second: u64,
+    pub rate_limit_burst: u32,
 }
 
 /// Settings for the Database Connection Pool
@@ -104,6 +106,8 @@ impl Default for ApplicationSettings {
             service_name: "micserver.exe".into(),
             expose_config: false,
             request_time_limit_seconds: 5,
+            rate_limit_per_second: 1,
+            rate_limit_burst: 4,
         }
     }
 }

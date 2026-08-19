@@ -51,9 +51,8 @@ pub async fn run(
     anyhow::Error,
 > {
     let governor_conf = GovernorConfigBuilder::default()
-        //The combination of 1 + 4 leads to 5 successful requests before a rate limit response is hit
-        .per_second(1)
-        .burst_size(4)
+        .per_second(configuration.application.rate_limit_per_second)
+        .burst_size(configuration.application.rate_limit_burst)
         .finish()
         .expect("Failed to create RateLimiter Settings");
 

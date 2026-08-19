@@ -261,13 +261,22 @@ pub(crate) async fn get_hiqueue_count_per_panel(
     if panel_tablesize != 0 && hi_queue_tablesize != 0 {
         let result = client
             .simple_query(
-            "select DESCRP as 'description', COUNT(*) as 'hi_queue_count' from (
-	            select Panel.DESCRP, HI_QUEUE.ID from HI_QUEUE inner join Panel on HI_QUEUE.CPAR2 = Panel.ID
-	            union all
-	            select Panel.Descrp, HI_QUEUE.ID from HI_QUEUE inner join Panel on LEFT(HI_QUEUE.CPAR1,(CHARINDEX(':', CPAR1) + 7)) = PANEL.ID
-
-            ) as interims
-            group by DESCRP"
+                // This query is extremely slow
+                // TODO: Check if queries are actually run in parallel and reactivate
+                //
+                // "select DESCRP as 'description', COUNT(*) as 'hi_queue_count' from (
+                //  select Panel.DESCRP, HI_QUEUE.ID from HI_QUEUE inner join Panel on HI_QUEUE.CPAR1 = Panel.ID
+                //  union all
+                //  select Panel.Descrp, HI_QUEUE.ID from HI_QUEUE inner join Panel on LEFT(HI_QUEUE.CPAR1,(CHARINDEX(':', CPAR1) + 7)) = PANEL.ID
+                //
+                // ) as interims
+                // group by DESCRP"
+                "
+                select DESCRP as 'description', COUNT(*) as 'hi_queue_count' 
+                from HI_QUEUE 
+                inner join PANEL on HI_QUEUE.CPAR1 = Panel.ID
+                group by DESCRP
+                ",
             )
             .await?
             .into_results()

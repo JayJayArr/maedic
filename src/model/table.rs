@@ -4,8 +4,8 @@ use strum_macros::EnumIter;
 /// `Table` lists the Tables where the size is used in the metrics
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelValue, EnumIter, strum_macros::Display)]
 pub enum Tables {
-    #[strum(to_string = "audit_log")]
-    AuditChanges,
+    // #[strum(to_string = "audit_log")]
+    // AuditChanges,
     #[strum(to_string = "badge")]
     Badges,
     #[strum(to_string = "badge_c")]

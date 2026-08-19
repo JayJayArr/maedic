@@ -133,7 +133,7 @@ impl Metrics {
     }
 }
 
-#[tracing::instrument(name = "Collect metrics", skip(pool, metrics))]
+#[tracing::instrument(name = "Collect metrics", skip_all)]
 pub(crate) async fn collect_metrics(
     pool: DBConnectionPool,
     metrics: &Metrics,

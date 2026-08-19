@@ -28,22 +28,7 @@ pub enum CardStates {
     #[strum(to_string = "V")]
     Void,
 }
-//
-// impl From<String> for CardStates {
-//     fn from(value: String) -> Self {
-//         match value {
-//             "A" => CardStates::Active,
-//             "D" => CardStates::Disabled,
-//             "O" => CardStates::AutoDisabled,
-//             "X" => CardStates::Expired,
-//             "L" => CardStates::Lost,
-//             "S" => CardStates::Stolen,
-//             "T" => CardStates::Terminated,
-//             "U" => CardStates::Unaccounted,
-//             "V" => CardStates::Void,
-//         }
-//     }
-// }
+
 impl FromStr for CardStates {
     type Err = ApplicationError;
     fn from_str(value: &str) -> Result<Self, Self::Err> {

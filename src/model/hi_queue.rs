@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct HiQueueCount {
-    pub hi_queue_count: i32,
     pub description: String,
+    pub hi_queue_count: i32,
 }
 
 impl From<tiberius::Row> for HiQueueCount {

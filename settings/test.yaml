@@ -7,6 +7,8 @@ application:
   service_name: MICSERVER.EXE # The name of the ProWatch Service
   expose_config: true
   request_time_limit_seconds: 5 # Time limit for requests, increase if the datbase queries take too long
+  rate_limit_per_second: 1
+  rate_limit_burst: 4
 database:
   # hostname: 172.17.0.1
   hostname: localhost #also accepts an IP-Address

@@ -8,7 +8,9 @@ use crate::{
 use axum::{
     Router,
     error_handling::HandleErrorLayer,
-    extract::{ConnectInfo, DefaultBodyLimit, connect_info::IntoMakeServiceWithConnectInfo},
+    extract::{
+        ConnectInfo, DefaultBodyLimit, FromRef, connect_info::IntoMakeServiceWithConnectInfo,
+    },
     middleware::AddExtension,
 };
 use axum::{routing::get, serve::Serve};
@@ -28,13 +30,13 @@ const MAX_BODY_BYTES: usize = 1024 * 1024;
 const REQUEST_BODY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(16);
 
 /// The current running state of the Application
-#[derive(Debug)]
+#[derive(Debug, Clone, FromRef)]
 pub struct AppState {
     pub pool: DBConnectionPool,
-    pub settings: Settings,
-    pub sys: System,
-    pub registry: Registry,
-    pub metrics: Metrics,
+    pub settings: Arc<Mutex<Settings>>,
+    pub sys: Arc<Mutex<System>>,
+    pub registry: Arc<Mutex<Registry>>,
+    pub metrics: Arc<Mutex<Metrics>>,
 }
 
 /// Start the Application with specific `Settings` and `AppState`
@@ -67,7 +69,7 @@ pub async fn run(
         ))
         .layer(tower_http::catch_panic::CatchPanicLayer::new())
         .layer(GovernorLayer::new(governor_conf))
-        .with_state(Arc::new(Mutex::new(state)))
+        .with_state(state)
         .layer(
             ServiceBuilder::new()
                 .layer(HandleErrorLayer::new(handle_timeout_error))

@@ -5,7 +5,8 @@ use maedic::{
     run::{AppState, run},
     telemetry::initialize_tracing,
 };
-use std::process::exit;
+use std::{process::exit, sync::Arc};
+use tokio::sync::Mutex;
 
 use sysinfo::System;
 
@@ -42,10 +43,10 @@ async fn main() -> anyhow::Result<()> {
     let (registry, metrics) = setup_metrics_registry().await;
     let state = AppState {
         pool,
-        settings: configuration.clone(),
-        sys: System::new_all(),
-        registry,
-        metrics,
+        settings: Arc::new(Mutex::new(configuration.clone())),
+        sys: Arc::new(Mutex::new(System::new_all())),
+        registry: Arc::new(Mutex::new(registry)),
+        metrics: Arc::new(Mutex::new(metrics)),
     };
 
     run(listener, state, configuration)

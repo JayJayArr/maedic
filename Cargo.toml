@@ -13,7 +13,7 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.104"
-axum = { version = "0.8.9", features = ["json", "macros", "tokio"] }
+axum = { version = "0.8.9", features = ["json", "macros", "tokio", "tracing"] }
 bb8 = "0.9.1"
 bb8-tiberius = "0.16.0"
 config = { version = "0.15.25", features = ["yaml"] }
@@ -26,7 +26,7 @@ strum_macros = "0.28.0"
 sysinfo = "0.39.6"
 thiserror = "2.0.20"
 tiberius = { version = "0.12.3", default-features = false, features = ["integrated-auth-gssapi", "rustls", "winauth"] }
-tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.53.1", features = ["full"] }
 tokio-util = { version = "0.7.19", features = ["compat"] }
 tower = { version = "0.5.3", features = ["timeout"] }
 tower_governor = "0.8.0"

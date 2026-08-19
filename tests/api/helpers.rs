@@ -14,10 +14,12 @@ use maedic::{
 use once_cell::sync::Lazy;
 use secrecy::ExposeSecret;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use sysinfo::System;
 use tiberius::{AuthMethod, Client, Config};
 use tokio::net::TcpListener;
 use tokio::net::TcpStream;
+use tokio::sync::Mutex;
 use tokio_util::compat::{Compat, TokioAsyncWriteCompatExt};
 use tracing::info;
 use uuid::Uuid;
@@ -83,7 +85,7 @@ pub struct TestServer {
 
 impl TestServer {
     pub async fn build(settings: Settings) -> Result<Self, anyhow::Error> {
-        let connection_pool = setup_database_pool(settings.database.clone())
+        let pool = setup_database_pool(settings.database.clone())
             .await
             .expect("Failed to create database connection pool");
         let listener = TcpListener::bind(format!(
@@ -105,11 +107,11 @@ impl TestServer {
         let server = run(
             listener,
             AppState {
-                pool: connection_pool,
-                settings: settings.clone(),
-                sys: System::new_all(),
-                registry,
-                metrics,
+                pool,
+                settings: Arc::new(Mutex::new(settings.clone())),
+                sys: Arc::new(Mutex::new(System::new_all())),
+                registry: Arc::new(Mutex::new(registry)),
+                metrics: Arc::new(Mutex::new(metrics)),
             },
             settings,
         )

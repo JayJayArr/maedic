@@ -6,59 +6,64 @@ use axum::http::{Response, StatusCode};
 use axum::response::IntoResponse;
 use axum::{Json, extract::State};
 use prometheus_client::encoding::text::encode;
+use prometheus_client::registry::Registry;
 use std::sync::Arc;
+use sysinfo::System;
 use tokio::sync::Mutex;
 use tracing::warn;
 
-use crate::metrics::{Endpoint, collect_metrics};
+use crate::configuration::{DBConnectionPool, Settings};
+use crate::metrics::{Endpoint, Metrics, collect_metrics};
 use crate::{
     checks::{check_local_service, get_cpu_load, get_ram_load},
     configuration::LimitSettings,
     database::{DatabaseConnectionState, get_db_status, get_table_count, get_unhealthy_spoolfiles},
     error::ApplicationError,
     health::{MaedicHealth, PWHealth, health_is_good},
-    run::AppState,
 };
 
 /// Handler to check the Health of PW
 #[tracing::instrument(name = "check PW health", skip_all)]
 pub(crate) async fn check_health(
-    State(state): State<Arc<Mutex<AppState>>>,
+    State(pool): State<DBConnectionPool>,
+    State(settings): State<Arc<Mutex<Settings>>>,
+    State(metrics): State<Arc<Mutex<Metrics>>>,
+    State(sys): State<Arc<Mutex<System>>>,
 ) -> Result<(StatusCode, Json<PWHealth>), ApplicationError> {
-    let mut state = state.lock().await;
-    state.metrics.inc_requests(Endpoint::Health);
-    let limits = state.settings.limits.clone();
+    metrics.lock().await.inc_requests(Endpoint::Health);
+    let mut sys = sys.lock().await;
+    let limits = settings.lock().await.limits.clone();
     // HI_QUEUE
     let hi_queue_size = if limits.hi_queue_count == 0 {
         None
     } else {
-        Some(get_table_count(state.pool.clone(), "hi_queue".to_string()).await?)
+        Some(get_table_count(pool.clone(), "hi_queue".to_string()).await?)
     };
     //Spool Files
     let unhealthy_spool_files = if limits.spool_file_count == 0 {
         None
     } else {
-        Some(get_unhealthy_spoolfiles(state.pool.clone(), limits.spool_file_count).await?)
+        Some(get_unhealthy_spoolfiles(pool.clone(), limits.spool_file_count).await?)
     };
-    state.sys.refresh_all();
+    sys.refresh_all();
     let service_state = if !limits.check_local_service {
         None
     } else {
-        Some(check_local_service(&state.sys, &state.settings.application.service_name).await)
+        Some(check_local_service(&sys, &settings.lock().await.application.service_name).await)
     };
     let global_cpu_usage_percentage = if limits.max_cpu_percentage == 0.0 {
         None
     } else {
-        Some(get_cpu_load(&state.sys).await)
+        Some(get_cpu_load(&sys).await)
     };
 
     let used_memory_percentage = if limits.max_ram_percentage == 0.0 {
         None
     } else {
-        Some(get_ram_load(&state.sys).await)
+        Some(get_ram_load(&sys).await)
     };
 
-    let maedic_health = match get_db_status(state.pool.clone()).await {
+    let maedic_health = match get_db_status(pool).await {
         Ok(state) => match state {
             DatabaseConnectionState::Healthy => MaedicHealth::healthy(),
             DatabaseConnectionState::Unhealthy => MaedicHealth::unhealthy(),
@@ -85,29 +90,31 @@ pub(crate) async fn check_health(
 /// Exposing the `LimitSettings` for the health check endpoint
 #[tracing::instrument(name = "Getting exposed config", skip_all)]
 pub(crate) async fn get_config_handler(
-    State(state): State<Arc<Mutex<AppState>>>,
+    State(settings): State<Arc<Mutex<Settings>>>,
+    State(metrics): State<Arc<Mutex<Metrics>>>,
 ) -> Result<(StatusCode, Json<LimitSettings>), StatusCode> {
-    let state = state.lock().await;
-    state.metrics.inc_requests(Endpoint::Config);
-    if state.settings.application.expose_config {
-        Ok((StatusCode::OK, Json(state.settings.limits.clone())))
+    metrics.lock().await.inc_requests(Endpoint::Config);
+    let settings = settings.lock().await;
+    if settings.application.expose_config {
+        Ok((StatusCode::OK, Json(settings.limits.clone())))
     } else {
         Err(StatusCode::NOT_FOUND)
     }
 }
 
 /// Exposing Prometheus style metrics collected from the database
-#[tracing::instrument(name = "Scrape metrics", skip(state))]
+#[tracing::instrument(name = "Scrape metrics", skip_all)]
 pub(crate) async fn metrics_handler(
-    State(state): State<Arc<Mutex<AppState>>>,
+    State(pool): State<DBConnectionPool>,
+    State(metrics): State<Arc<Mutex<Metrics>>>,
+    State(registry): State<Arc<Mutex<Registry>>>,
 ) -> impl IntoResponse {
-    let state = state.lock().await;
-    state.metrics.inc_requests(Endpoint::Metrics);
-    collect_metrics(state.pool.clone(), &state.metrics)
-        .await
-        .unwrap();
+    let metrics = metrics.lock().await;
+    metrics.inc_requests(Endpoint::Metrics);
+    collect_metrics(pool, &metrics).await.unwrap();
     let mut buffer = String::new();
-    encode(&mut buffer, &state.registry).unwrap();
+    let registry = registry.lock().await;
+    encode(&mut buffer, &registry).unwrap();
     Response::builder()
         .status(StatusCode::OK)
         .header(CONTENT_TYPE, "text/plain; version=0.0.4; charset=utf-8")
@@ -115,7 +122,7 @@ pub(crate) async fn metrics_handler(
         .unwrap()
 }
 
-/// Exposing Prometheus style metrics collected from the database
+/// 404 handler
 #[tracing::instrument(name = "found 404")]
 pub async fn handler_404() -> impl IntoResponse {
     (StatusCode::NOT_FOUND, "nothing to see here")

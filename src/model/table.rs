@@ -30,8 +30,8 @@ pub enum Tables {
     HiQueue,
     #[strum(to_string = "unack_Al")]
     UnacknowledgedAlarms,
-    #[strum(to_string = "ev_log")]
-    Events,
+    // #[strum(to_string = "ev_log")]
+    // Events,
     #[strum(to_string = "parti")]
     Partitions,
     #[strum(to_string = "uid")]

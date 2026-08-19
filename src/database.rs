@@ -135,23 +135,38 @@ pub(crate) async fn get_table_count(
 #[tracing::instrument(name = "Check Card Status", skip(pool))]
 pub(crate) async fn get_card_state(
     pool: DBConnectionPool,
-    status: String,
-) -> Result<i32, ApplicationError> {
+    // status: String,
+) -> Result<Vec<(String, i32)>, ApplicationError> {
     let mut client = pool.get().await?;
-    let size = client
-        .simple_query(format!(
-            "SELECT COUNT(*) as COUNT FROM Badge_C where STAT_COD = '{}'",
-            status
-        ))
+    let result = client
+        .simple_query(
+            "select STAT_COD,COUNT(STAT_COD) as 'COUNT' from BADGE_C
+            GROUP BY STAT_COD
+            order by STAT_COD",
+        )
         .await?
-        .into_row()
+        .into_first_result()
         .await?
-        .ok_or(ApplicationError::EmptyResult)?
-        .get::<i32, &str>("COUNT")
-        .ok_or(ApplicationError::Conversion(
-            "Failed to convert COUNT".to_string(),
-        ))?;
-    Ok(size)
+        .iter()
+        .map(|result| {
+            let stat_cod = result
+                .get::<&str, &str>("STAT_COD")
+                .ok_or(ApplicationError::Conversion(
+                    "Failed to extract STAT_COD".to_string(),
+                ))
+                .unwrap()
+                .to_string();
+
+            let count = result
+                .get::<i32, &str>("COUNT")
+                .ok_or(ApplicationError::Conversion(
+                    "Failed to convert COUNT".to_string(),
+                ))
+                .unwrap();
+            (stat_cod, count)
+        })
+        .collect();
+    Ok(result)
 }
 
 #[tracing::instrument(name = "Get Version & build number", skip(pool))]

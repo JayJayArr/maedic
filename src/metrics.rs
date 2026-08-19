@@ -152,10 +152,9 @@ pub(crate) async fn collect_metrics(
     }
 
     // Collect Card Status Metrics
-    for state in CardStates::iter() {
-        let countvalue = get_card_state(pool.clone(), state.to_string()).await?;
-        metrics.set_card_state(state, countvalue.into());
-    }
+    get_card_state(pool.clone()).await?.iter().for_each(|row| {
+        metrics.set_card_state(row.0.as_str().parse::<CardStates>().unwrap(), row.1.into());
+    });
 
     // Collect and set spool_file metrics
     let spool_files = get_unhealthy_spoolfiles(pool.clone(), -1).await?;

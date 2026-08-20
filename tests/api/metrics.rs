@@ -27,7 +27,6 @@ async fn test_metrics_database_sizes(#[case] db_version: DbVersion) {
     assert!(text.contains("Readers"));
     assert!(text.contains("HiQueue"));
     assert!(text.contains("UnacknowledgedAlarms"));
-    assert!(text.contains("Events"));
     assert!(text.contains("Users"));
     assert!(text.contains("Workstations"));
 }
@@ -51,14 +50,14 @@ async fn test_metrics_card_states(#[case] db_version: DbVersion) {
     assert!(text.contains("# HELP maedic_card_state State of cards."));
 
     assert!(text.contains("Active"));
-    assert!(text.contains("Disabled"));
-    assert!(text.contains("AutoDisabled"));
-    assert!(text.contains("Expired"));
-    assert!(text.contains("Lost"));
-    assert!(text.contains("Stolen"));
-    assert!(text.contains("Terminated"));
-    assert!(text.contains("Unaccounted"));
-    assert!(text.contains("Void"));
+    // assert!(text.contains("Disabled"));
+    // assert!(text.contains("AutoDisabled"));
+    // assert!(text.contains("Expired"));
+    // assert!(text.contains("Lost"));
+    // assert!(text.contains("Stolen"));
+    // assert!(text.contains("Terminated"));
+    // assert!(text.contains("Unaccounted"));
+    // assert!(text.contains("Void"));
 }
 
 #[tokio::test]

@@ -16,13 +16,28 @@ async fn test_rate_limiter_is_global() {
 
     assert_eq!(response.status(), 429);
 }
+#[tokio::test]
+async fn test_rate_limiter_is_applied_to_endpoint_no_migration() {
+    let app = TestApplication::spawn_app(DbVersion::NoMigration).await;
+    let client = TestClient::new();
+
+    //Create 5 quick requests
+    for _ in 1..5 {
+        let response = client.get_endpoint(app.address.clone(), "/v1/config").await;
+        assert_eq!(response.status(), 200);
+    }
+    //sixth request to another endpoint still yields an error
+    let response = client.get_endpoint(app.address, "/v1/config").await;
+
+    assert_eq!(response.status(), 429);
+}
+
 #[rstest]
 #[case("/v1/health")]
-#[case("/v1/config")]
 #[case("/metrics")]
 #[tokio::test]
 async fn test_rate_limiter_is_applied_to_endpoint(#[case] endpoint: &str) {
-    let app = TestApplication::spawn_app(DbVersion::V652SP1).await;
+    let app = TestApplication::spawn_app(DbVersion::V66SP1).await;
     let client = TestClient::new();
 
     //Create 5 quick requests

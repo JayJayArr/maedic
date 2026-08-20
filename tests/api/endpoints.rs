@@ -8,7 +8,7 @@ use rstest::rstest;
 
 #[tokio::test]
 #[rstest]
-#[case(DbVersion::V652SP1)]
+#[case(DbVersion::NoMigration)]
 async fn test_config_endpoint_works(#[case] db_version: DbVersion) {
     let app = TestApplication::spawn_app(db_version).await;
     let client = reqwest::Client::new();
@@ -58,7 +58,8 @@ async fn test_pw_health_endpoint_works_with_db(#[case] db_version: DbVersion) {
 
 #[tokio::test]
 #[rstest]
-#[case(DbVersion::V652SP1)]
+//This only needs to be tested against one DB Version as the version number is independente from the
+//DB Version
 #[case(DbVersion::V66SP1)]
 async fn test_version_number_is_correct(#[case] db_version: DbVersion) {
     let app = TestApplication::spawn_app(db_version).await;
@@ -80,8 +81,7 @@ async fn test_version_number_is_correct(#[case] db_version: DbVersion) {
 
 #[tokio::test]
 #[rstest]
-#[case(DbVersion::V652SP1)]
-#[case(DbVersion::V66SP1)]
+#[case(DbVersion::NoMigration)]
 async fn test_404_is_sent(#[case] db_version: DbVersion) {
     let app = TestApplication::spawn_app(db_version).await;
     let client = reqwest::Client::new();

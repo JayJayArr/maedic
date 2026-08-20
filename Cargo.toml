@@ -32,6 +32,7 @@ tower = { version = "0.5.3", features = ["timeout"] }
 tower_governor = "0.8.0"
 tower-http = { version = "0.7.0", features = ["request-id", "trace", "timeout", "catch-panic"] }
 tracing = { version = "0.1.44", features = ["attributes", "std"] }
+tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter", "fmt", "json", "registry", "std"] }
 uuid = { version = "1.24.1", features = ["v4"] }
 

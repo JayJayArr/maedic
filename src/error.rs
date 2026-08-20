@@ -3,7 +3,7 @@ use bb8::RunError;
 
 /// Runtime Errors
 #[derive(thiserror::Error, Debug)]
-pub(crate) enum ApplicationError {
+pub enum ApplicationError {
     /// Unknown Error
     #[error(transparent)]
     Unexpected(#[from] anyhow::Error),

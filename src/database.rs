@@ -135,23 +135,38 @@ pub(crate) async fn get_table_count(
 #[tracing::instrument(name = "Check Card Status", skip(pool))]
 pub(crate) async fn get_card_state(
     pool: DBConnectionPool,
-    status: String,
-) -> Result<i32, ApplicationError> {
+    // status: String,
+) -> Result<Vec<(String, i32)>, ApplicationError> {
     let mut client = pool.get().await?;
-    let size = client
-        .simple_query(format!(
-            "SELECT COUNT(*) as COUNT FROM Badge_C where STAT_COD = '{}'",
-            status
-        ))
+    let result = client
+        .simple_query(
+            "select STAT_COD,COUNT(STAT_COD) as 'COUNT' from BADGE_C
+            GROUP BY STAT_COD
+            order by STAT_COD",
+        )
         .await?
-        .into_row()
+        .into_first_result()
         .await?
-        .ok_or(ApplicationError::EmptyResult)?
-        .get::<i32, &str>("COUNT")
-        .ok_or(ApplicationError::Conversion(
-            "Failed to convert COUNT".to_string(),
-        ))?;
-    Ok(size)
+        .iter()
+        .map(|result| {
+            let stat_cod = result
+                .get::<&str, &str>("STAT_COD")
+                .ok_or(ApplicationError::Conversion(
+                    "Failed to extract STAT_COD".to_string(),
+                ))
+                .unwrap()
+                .to_string();
+
+            let count = result
+                .get::<i32, &str>("COUNT")
+                .ok_or(ApplicationError::Conversion(
+                    "Failed to convert COUNT".to_string(),
+                ))
+                .unwrap();
+            (stat_cod, count)
+        })
+        .collect();
+    Ok(result)
 }
 
 #[tracing::instrument(name = "Get Version & build number", skip(pool))]
@@ -246,13 +261,22 @@ pub(crate) async fn get_hiqueue_count_per_panel(
     if panel_tablesize != 0 && hi_queue_tablesize != 0 {
         let result = client
             .simple_query(
-            "select DESCRP as 'description', COUNT(*) as 'hi_queue_count' from (
-	            select Panel.DESCRP, HI_QUEUE.ID from HI_QUEUE inner join Panel on HI_QUEUE.CPAR2 = Panel.ID
-	            union all
-	            select Panel.Descrp, HI_QUEUE.ID from HI_QUEUE inner join Panel on LEFT(HI_QUEUE.CPAR1,(CHARINDEX(':', CPAR1) + 7)) = PANEL.ID
-
-            ) as interims
-            group by DESCRP"
+                // This query is extremely slow
+                // TODO: Check if queries are actually run in parallel and reactivate
+                //
+                // "select DESCRP as 'description', COUNT(*) as 'hi_queue_count' from (
+                //  select Panel.DESCRP, HI_QUEUE.ID from HI_QUEUE inner join Panel on HI_QUEUE.CPAR1 = Panel.ID
+                //  union all
+                //  select Panel.Descrp, HI_QUEUE.ID from HI_QUEUE inner join Panel on LEFT(HI_QUEUE.CPAR1,(CHARINDEX(':', CPAR1) + 7)) = PANEL.ID
+                //
+                // ) as interims
+                // group by DESCRP"
+                "
+                select DESCRP as 'description', COUNT(*) as 'hi_queue_count' 
+                from HI_QUEUE 
+                inner join PANEL on HI_QUEUE.CPAR1 = Panel.ID
+                group by DESCRP
+                ",
             )
             .await?
             .into_results()

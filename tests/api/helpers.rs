@@ -51,7 +51,9 @@ impl TestApplication {
         create_database(&settings.database, creation_client).await;
 
         let mut migration_client = create_db_client(&settings.database, true).await;
-        configure_database(&mut migration_client, db_version.clone()).await;
+        if db_version != DbVersion::NoMigration {
+            configure_database(&mut migration_client, db_version.clone()).await;
+        }
 
         let pool = setup_database_pool(settings.database.clone())
             .await
@@ -195,6 +197,7 @@ pub async fn configure_database(
                 .await
                 .expect("Failed to run database migrations");
         }
+        DbVersion::NoMigration => (),
     }
 }
 
@@ -213,10 +216,12 @@ pub async fn create_database(
         .expect("Failed to close database client");
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum DbVersion {
     /// Build No. 17618
     V652SP1,
     /// Build No. 18204
     V66SP1,
+    /// Dummy to skip migrations when not needed
+    NoMigration,
 }

@@ -1,5 +1,9 @@
+use std::str::FromStr;
+
 use prometheus_client::encoding::EncodeLabelValue;
 use strum_macros::EnumIter;
+
+use crate::error::ApplicationError;
 
 /// `CardStates` lists the possible States of a saved card
 /// e.g. `Active` or `Disabled`, each state being saved as a single char in the db
@@ -23,4 +27,25 @@ pub enum CardStates {
     Unaccounted,
     #[strum(to_string = "V")]
     Void,
+}
+
+impl FromStr for CardStates {
+    type Err = ApplicationError;
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "A" => Ok(CardStates::Active),
+            "D" => Ok(CardStates::Disabled),
+            "O" => Ok(CardStates::AutoDisabled),
+            "X" => Ok(CardStates::Expired),
+            "L" => Ok(CardStates::Lost),
+            "S" => Ok(CardStates::Stolen),
+            "T" => Ok(CardStates::Terminated),
+            "U" => Ok(CardStates::Unaccounted),
+            "V" => Ok(CardStates::Void),
+            _ => Err(ApplicationError::Conversion(format!(
+                "Could not convert {} to a CardState",
+                value
+            ))),
+        }
+    }
 }

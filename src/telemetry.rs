@@ -1,24 +1,14 @@
-use std::str::FromStr;
-
-use tracing_subscriber::{
-    EnvFilter, Layer, filter::Directive, layer::SubscriberExt, util::SubscriberInitExt,
-};
+use tracing::subscriber::set_global_default;
+use tracing_log::LogTracer;
+use tracing_subscriber::{EnvFilter, Layer, Registry, filter::Directive, layer::SubscriberExt};
 
 /// Initialize `Tracing` and a `tracing_subscriber
 pub fn initialize_tracing(env_filter: String, path: String) -> anyhow::Result<()> {
-    let log_level: Directive = Directive::from_str(env_filter.as_str())?;
-    //Filter unnecessary info
-    let filter = EnvFilter::new(&env_filter)
-        .add_directive(format!("reqwest={}", log_level).parse()?)
-        .add_directive(format!("tiberius={}", log_level).parse()?);
+    //This format fails non-existing log-levels early
+    format!("maedic={}", env_filter).parse::<Directive>()?;
 
-    //Create a format layer with the appropriate filter for standard output
-    let fmt_layer = tracing_subscriber::fmt::layer()
-        .with_ansi(false)
-        .with_filter(filter.clone());
-
-    //Create a format layer with the appropriate filter for logging to file
-    let file_log_layer = tracing_subscriber::fmt::layer()
+    let env_filter = EnvFilter::new(env_filter);
+    let fmt_layer_file = tracing_subscriber::fmt::layer()
         .with_ansi(false)
         .with_writer(
             std::fs::OpenOptions::new()
@@ -27,14 +17,18 @@ pub fn initialize_tracing(env_filter: String, path: String) -> anyhow::Result<()
                 .open(path)
                 .expect("Could not create or open logfile"),
         )
-        .with_filter(filter);
+        .with_filter(env_filter.clone());
+    let fmt_layer_log = tracing_subscriber::fmt::layer()
+        .with_ansi(true)
+        .with_filter(env_filter.clone());
 
-    tracing_subscriber::registry()
-        // install standard output layer
-        .with(fmt_layer)
-        // install logging to file
-        .with(file_log_layer)
-        .init();
+    let subscriber = Registry::default()
+        .with(env_filter)
+        .with(fmt_layer_file)
+        .with(fmt_layer_log);
+
+    LogTracer::init().expect("Failed to set logger");
+    set_global_default(subscriber).expect("Failed to set subscriber");
     Ok(())
 }
 

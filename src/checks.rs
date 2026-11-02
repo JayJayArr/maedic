@@ -1,14 +1,14 @@
 use crate::health::ServiceState;
 use sysinfo::{Process, System};
 
-#[tracing::instrument(name = "Check CPU load", skip_all)]
-pub(crate) async fn get_cpu_load(sys: &System) -> f32 {
+#[tracing::instrument(name = "Check CPU usage", skip_all)]
+pub(crate) async fn get_cpu_usage(sys: &System) -> f32 {
     (sys.global_cpu_usage() * 100.0).ceil() / 100.0
 }
 
 // check the local RAM usage
-#[tracing::instrument(name = "Check RAM load", skip_all)]
-pub(crate) async fn get_ram_load(sys: &System) -> f32 {
+#[tracing::instrument(name = "Check RAM usage", skip_all)]
+pub(crate) async fn get_ram_usage(sys: &System) -> f32 {
     ((sys.used_memory() as f32 / sys.total_memory() as f32) * 10000.0).ceil() / 100.0
 }
 
@@ -28,28 +28,21 @@ mod tests {
 
     use sysinfo::System;
 
-    use crate::checks::{get_cpu_load, get_ram_load};
+    use crate::checks::{get_cpu_usage, get_ram_usage};
 
     #[tokio::test]
     async fn cpu_value_between_0_and_100() {
-        let system_state = System::new_all();
-        let cpu = get_cpu_load(&system_state).await;
+        let system_state = System::new_all().expect("Failed to build System monitor");
+        let cpu = get_cpu_usage(&system_state).await;
         assert!(cpu < 100.0);
         assert!(cpu > 0.0);
     }
 
     #[tokio::test]
     async fn ram_value_between_0_and_100() {
-        let system_state = System::new_all();
-        let ram = get_ram_load(&system_state).await;
+        let system_state = System::new_all().expect("Failed to build System monitor");
+        let ram = get_ram_usage(&system_state).await;
         assert!(ram < 100.0);
         assert!(ram > 0.0);
     }
-
-    // #[tokio::test]
-    // async fn check_service_network_service_is_found() {
-    //     let system_state = Arc::new(Mutex::new(System::new_all()));
-    //     let service_state = check_local_service(&system_state, &"network".to_string()).await;
-    //     assert_eq!(service_state, ServiceState::Up);
-    // }
 }

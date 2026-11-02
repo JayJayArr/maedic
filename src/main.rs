@@ -44,7 +44,9 @@ async fn main() -> anyhow::Result<()> {
     let state = AppState {
         pool,
         settings: Arc::new(Mutex::new(configuration.clone())),
-        sys: Arc::new(Mutex::new(System::new_all())),
+        sys: Arc::new(Mutex::new(
+            System::new_all().expect("Failed to create System Monitor"),
+        )),
         registry: Arc::new(Mutex::new(registry)),
         metrics: Arc::new(Mutex::new(metrics)),
     };

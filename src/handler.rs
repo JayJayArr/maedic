@@ -15,7 +15,7 @@ use tracing::warn;
 use crate::configuration::{DBConnectionPool, Settings};
 use crate::metrics::{Endpoint, Metrics, collect_metrics};
 use crate::{
-    checks::{check_local_service, get_cpu_load, get_ram_load},
+    checks::{check_local_service, get_cpu_usage, get_ram_usage},
     configuration::LimitSettings,
     database::{DatabaseConnectionState, get_db_status, get_table_count, get_unhealthy_spoolfiles},
     error::ApplicationError,
@@ -54,13 +54,13 @@ pub(crate) async fn check_health(
     let global_cpu_usage_percentage = if limits.max_cpu_percentage == 0.0 {
         None
     } else {
-        Some(get_cpu_load(&sys).await)
+        Some(get_cpu_usage(&sys).await)
     };
 
     let used_memory_percentage = if limits.max_ram_percentage == 0.0 {
         None
     } else {
-        Some(get_ram_load(&sys).await)
+        Some(get_ram_usage(&sys).await)
     };
 
     let maedic_health = match get_db_status(pool).await {

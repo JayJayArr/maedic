@@ -15,6 +15,7 @@ use once_cell::sync::Lazy;
 use secrecy::ExposeSecret;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 use sysinfo::System;
 use tiberius::{AuthMethod, Client, Config};
 use tokio::net::TcpListener;
@@ -165,6 +166,8 @@ pub async fn create_db_client(
         db_config.username.clone(),
         db_config.password.expose_secret(),
     ));
+    // Set the Command Timeout high for long Database Migrations to complete before being cancelled
+    config.command_timeout(Some(Duration::from_secs(300)));
     if set_db_name {
         config.database(db_config.database_name.clone());
     }

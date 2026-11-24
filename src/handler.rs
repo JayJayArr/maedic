@@ -16,7 +16,6 @@ use crate::configuration::{DBConnectionPool, Settings};
 use crate::metrics::{Endpoint, Metrics, collect_metrics};
 use crate::{
     checks::{check_local_service, get_cpu_usage, get_ram_usage},
-    configuration::LimitSettings,
     database::{DatabaseConnectionState, get_db_status, get_table_count, get_unhealthy_spoolfiles},
     error::ApplicationError,
     health::{MaedicHealth, PWHealth, health_is_good},
@@ -92,11 +91,11 @@ pub(crate) async fn check_health(
 pub(crate) async fn get_config_handler(
     State(settings): State<Arc<Mutex<Settings>>>,
     State(metrics): State<Arc<Mutex<Metrics>>>,
-) -> Result<(StatusCode, Json<LimitSettings>), StatusCode> {
+) -> Result<(StatusCode, Json<Settings>), StatusCode> {
     metrics.lock().await.inc_requests(Endpoint::Config);
     let settings = settings.lock().await;
     if settings.application.expose_config {
-        Ok((StatusCode::OK, Json(settings.limits.clone())))
+        Ok((StatusCode::OK, Json(settings.clone())))
     } else {
         Err(StatusCode::NOT_FOUND)
     }

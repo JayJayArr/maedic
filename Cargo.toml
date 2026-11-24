@@ -43,6 +43,7 @@ predicates = "3.1.4"
 rstest = "0.29"
 refinery = { version = "0.10.0", features = ["tiberius"] }
 reqwest = { version = "0.13.5", features = ["cookies", "json", "rustls"] }
+serde_json = "1.0.154"
 
 # The profile that 'dist' will build with
 [profile.dist]

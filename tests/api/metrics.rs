@@ -111,7 +111,7 @@ async fn test_metrics_panel_installed(#[case] db_version: DbVersion) {
 #[rstest]
 #[case(DbVersion::V652SP1)]
 #[case(DbVersion::V66SP1)]
-async fn test_metrics_maedic_requests(#[case] db_version: DbVersion) {
+async fn test_metrics_maedic_endpoints_are_correct_and_available(#[case] db_version: DbVersion) {
     let app = TestApplication::spawn_app(db_version).await;
     let client = TestClient::new();
 

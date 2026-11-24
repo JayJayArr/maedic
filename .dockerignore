@@ -8,3 +8,5 @@ Makefile
 LICENSE*
 *.md
 compose.yaml
+dist-workspace.toml
+

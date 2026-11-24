@@ -35,6 +35,7 @@ RUN groupadd -g 1234 maedicgroup && \
 USER maedic:maedicgroup
 WORKDIR /app
 COPY --from=builder --chown=maedic:maedicgroup  /app/target/release/maedic maedic
+COPY --chown=maedic:maedicgroup  ./settings/base.yaml ./settings/base.yaml
 EXPOSE 3000
 HEALTHCHECK --interval=60s --timeout=10s --retries=3 \
   CMD curl -f http://localhost:3000/v1/health || exit 1

@@ -6,7 +6,7 @@ application:
   log_level: info # how detailed the log shall be, can be: trace, debug, info, warn, error
   service_name: MICSERVER.EXE # The name of the ProWatch Service
   expose_config: true
-  request_time_limit_seconds: 5 # Time limit for requests, increase if the datbase queries take too long
+  request_time_limit_seconds: 5 # Time limit for requests, increase if the database queries take too long
   rate_limit_per_second: 1
   rate_limit_burst: 4
   # rate_limit_per_second: 1000

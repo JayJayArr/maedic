@@ -24,6 +24,8 @@ The following endpoints are available:
   - Installation Status of the Panels
   - Firmware Versions of the Panels
 - `/v1/config` to check the configured limits and options
+- `/livez` to check that `maedic` is reachable, always returns a `200 OK` when the server is running
+- `/readyz` to check that `maedic` is ready to receive requests, this checks the DB connection as well and returns either a `200 OK` or a `503`
 
 ## Installation
 

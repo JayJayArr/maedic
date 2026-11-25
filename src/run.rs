@@ -1,7 +1,8 @@
 use crate::{
     configuration::{DBConnectionPool, Settings},
     handler::{
-        check_health, get_config_handler, handle_timeout_error, handler_404, metrics_handler,
+        check_health, get_config_handler, handle_timeout_error, handler_404, livez_handler,
+        metrics_handler, readyz_handler,
     },
     metrics::Metrics,
 };
@@ -62,6 +63,8 @@ pub async fn run(
         .route("/v1/health", get(check_health))
         .route("/v1/config", get(get_config_handler))
         .route("/metrics", get(metrics_handler))
+        .route("/livez", get(livez_handler))
+        .route("/readyz", get(readyz_handler))
         .fallback(handler_404)
         .layer(DefaultBodyLimit::max(MAX_BODY_BYTES))
         .layer(tower_http::timeout::RequestBodyTimeoutLayer::new(

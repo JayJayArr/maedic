@@ -123,11 +123,15 @@ pub(crate) async fn metrics_handler(
 
 /// 404 handler
 #[tracing::instrument(name = "found 404")]
-pub async fn handler_404() -> impl IntoResponse {
+pub(crate) async fn handler_404() -> impl IntoResponse {
     (StatusCode::NOT_FOUND, "nothing to see here")
 }
 
-pub async fn handle_timeout_error(method: Method, uri: Uri, err: BoxError) -> (StatusCode, String) {
+pub(crate) async fn handle_timeout_error(
+    method: Method,
+    uri: Uri,
+    err: BoxError,
+) -> (StatusCode, String) {
     if err.is::<tower::timeout::error::Elapsed>() {
         (
             StatusCode::REQUEST_TIMEOUT,
@@ -138,5 +142,20 @@ pub async fn handle_timeout_error(method: Method, uri: Uri, err: BoxError) -> (S
             StatusCode::INTERNAL_SERVER_ERROR,
             format!("`{method} {uri}` failed with {err}"),
         )
+    }
+}
+
+/// Returns `200 OK` when the server is running
+pub(crate) async fn livez_handler() -> impl IntoResponse {
+    StatusCode::OK
+}
+
+/// Returns `200 OK` when the database connection is healthy, `503` otherwise
+pub(crate) async fn readyz_handler(
+    State(pool): State<DBConnectionPool>,
+) -> Result<StatusCode, StatusCode> {
+    match get_db_status(pool).await {
+        Ok(DatabaseConnectionState::Healthy) => Ok(StatusCode::OK),
+        _ => Err(StatusCode::SERVICE_UNAVAILABLE),
     }
 }
